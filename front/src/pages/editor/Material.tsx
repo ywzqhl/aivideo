@@ -243,8 +243,9 @@ export default function MaterialPage() {
       <div
         className={cn(
           'rounded-2xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden flex flex-col',
-          phase === 'subtitle' ? 'h-[720px]' : 'flex-1 min-h-[640px]'
+          phase === 'subtitle' ? 'shrink-0' : 'flex-1 min-h-[640px]'
         )}
+        style={phase === 'subtitle' ? { height: 720 } : undefined}
       >
         {phase === 'upload' && (
           <VideoUploadStep

@@ -94,6 +94,7 @@ export default function SubtitleStep({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [resolution, setResolution] = useState<string>('');
+  const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
     setCurrentTime(0);
@@ -229,15 +230,17 @@ export default function SubtitleStep({
   const durationText = duration > 0 ? formatClock(duration, true) : '00:00:00';
 
   // 字幕编辑状态
+  const showPlaceholder = !videoUrl || videoFailed;
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* 主内容区：左视频信息(1) + 右字幕列表(2)，等高各自滚动 */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_2fr] overflow-hidden min-h-0">
         {/* 左侧：视频预览(固定) + 元数据(滚动) */}
         <div className="flex flex-col min-h-0 md:border-r border-white/[0.06]">
           <div className="p-5 pb-4 shrink-0 space-y-4">
             <div className="relative aspect-video w-full rounded-2xl bg-black overflow-hidden">
-              {videoUrl ? (
+              {!showPlaceholder ? (
                 <>
                   <video
                     ref={videoRef}
@@ -245,6 +248,7 @@ export default function SubtitleStep({
                     controls
                     onLoadedMetadata={onLoadedMetadata}
                     onTimeUpdate={onTimeUpdate}
+                    onError={() => setVideoFailed(true)}
                     className="absolute inset-0 w-full h-full object-contain"
                   />
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white z-10">

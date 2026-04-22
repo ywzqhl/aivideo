@@ -112,7 +112,7 @@ export default function ConfigStep({
     <div className="h-full flex flex-col bg-[#0a0a0a]">
       {/* 主内容区 - 可滚动 */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+        <div className="w-full px-6 py-8 space-y-8">
           {/* 标题 */}
           <div>
             <h2 className="text-xl font-semibold text-white mb-2">配置解说参数</h2>

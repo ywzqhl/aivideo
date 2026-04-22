@@ -132,13 +132,13 @@ export default function SubtitleStep({
             <button
               onClick={onStartRecognition}
               disabled={isRecognizing}
-              className="group p-6 rounded-2xl bg-[#1a1a1a] border border-white/[0.06] hover:border-[#4ADE80]/30 transition-all text-left"
+              className="group p-6 rounded-2xl bg-[#1a1a1a] border border-white/[0.06] hover:border-[#46ec13]/30 transition-all text-left"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#4ADE80]/10 border border-[#4ADE80]/20 flex items-center justify-center mb-4 group-hover:bg-[#4ADE80]/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-[#46ec13]/10 border border-[#46ec13]/20 flex items-center justify-center mb-4 group-hover:bg-[#46ec13]/20 transition-colors">
                 {isRecognizing ? (
-                  <div className="w-5 h-5 border-2 border-[#4ADE80]/30 border-t-[#4ADE80] rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#46ec13]/30 border-t-[#46ec13] rounded-full animate-spin" />
                 ) : (
-                  <Play className="w-5 h-5 text-[#4ADE80]" />
+                  <Play className="w-5 h-5 text-[#46ec13]" />
                 )}
               </div>
               <h3 className="text-base font-medium text-white mb-1">自动识别</h3>
@@ -148,10 +148,10 @@ export default function SubtitleStep({
             {/* 上传字幕 */}
             <button
               onClick={() => srtInputRef.current?.click()}
-              className="group p-6 rounded-2xl bg-[#1a1a1a] border border-white/[0.06] hover:border-[#4ADE80]/30 transition-all text-left"
+              className="group p-6 rounded-2xl bg-[#1a1a1a] border border-white/[0.06] hover:border-[#46ec13]/30 transition-all text-left"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#4ADE80]/10 border border-[#4ADE80]/20 flex items-center justify-center mb-4 group-hover:bg-[#4ADE80]/20 transition-colors">
-                <Upload className="w-5 h-5 text-[#4ADE80]" />
+              <div className="w-12 h-12 rounded-xl bg-[#46ec13]/10 border border-[#46ec13]/20 flex items-center justify-center mb-4 group-hover:bg-[#46ec13]/20 transition-colors">
+                <Upload className="w-5 h-5 text-[#46ec13]" />
               </div>
               <h3 className="text-base font-medium text-white mb-1">上传字幕</h3>
               <p className="text-xs text-slate-500">支持 SRT、VTT 格式字幕文件</p>
@@ -168,8 +168,8 @@ export default function SubtitleStep({
     return (
       <div className="h-full flex items-center justify-center px-6">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#4ADE80]/10 border border-[#4ADE80]/20 flex items-center justify-center mx-auto mb-4">
-            <div className="w-6 h-6 border-2 border-[#4ADE80]/30 border-t-[#4ADE80] rounded-full animate-spin" />
+          <div className="w-16 h-16 rounded-2xl bg-[#46ec13]/10 border border-[#46ec13]/20 flex items-center justify-center mx-auto mb-4">
+            <div className="w-6 h-6 border-2 border-[#46ec13]/30 border-t-[#46ec13] rounded-full animate-spin" />
           </div>
           <h3 className="text-lg font-medium text-white mb-2">正在识别字幕...</h3>
           <p className="text-sm text-slate-500">请稍候，AI正在分析视频音频内容</p>
@@ -184,8 +184,8 @@ export default function SubtitleStep({
       {/* 顶部栏 */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#4ADE80]/10 border border-[#4ADE80]/20 flex items-center justify-center">
-            <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+          <div className="w-8 h-8 rounded-lg bg-[#46ec13]/10 border border-[#46ec13]/20 flex items-center justify-center">
+            <CheckCircle2 className="w-4 h-4 text-[#46ec13]" />
           </div>
           <div>
             <h3 className="text-base font-medium text-white">字幕预览与编辑</h3>
@@ -204,7 +204,7 @@ export default function SubtitleStep({
           <Button 
             size="sm"
             onClick={() => onSubtitlesChange([...subtitles])}
-            className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black"
+            className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black"
           >
             <CheckCircle2 className="w-4 h-4 mr-1.5" />保存
           </Button>
@@ -259,7 +259,7 @@ export default function SubtitleStep({
           <div className="p-4 border-t border-white/[0.06]">
             {videoFile && (
               <div className="flex items-center gap-3 text-xs text-slate-500">
-                <FileVideo className="w-4 h-4 text-[#4ADE80]" />
+                <FileVideo className="w-4 h-4 text-[#46ec13]" />
                 <span className="text-slate-300">{videoFile.name}</span>
                 <span className="text-slate-600">·</span>
                 <span>{formatFileSize(videoFile.size)}</span>
@@ -269,7 +269,7 @@ export default function SubtitleStep({
               variant="outline" 
               size="sm"
               onClick={onReupload}
-              className="w-full mt-3 border-[#4ADE80]/30 text-[#4ADE80] hover:bg-[#4ADE80]/10"
+              className="w-full mt-3 border-[#46ec13]/30 text-[#46ec13] hover:bg-[#46ec13]/10"
             >
               <RefreshCw className="w-4 h-4 mr-1.5" />重新选择视频
             </Button>
@@ -306,13 +306,13 @@ export default function SubtitleStep({
                         <textarea 
                           value={editText} 
                           onChange={(e) => setEditText(e.target.value)} 
-                          className="flex-1 min-h-[60px] rounded-lg bg-white/[0.06] border border-[#4ADE80]/30 p-3 text-sm text-white outline-none focus:border-[#4ADE80]/50 resize-none"
+                          className="flex-1 min-h-[60px] rounded-lg bg-white/[0.06] border border-[#46ec13]/30 p-3 text-sm text-white outline-none focus:border-[#46ec13]/50 resize-none"
                           autoFocus
                         />
                         <Button 
                           size="sm" 
                           onClick={() => handleEditSave(sub.id)} 
-                          className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black shrink-0"
+                          className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black shrink-0"
                         >
                           保存
                         </Button>

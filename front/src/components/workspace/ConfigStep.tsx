@@ -132,12 +132,12 @@ export default function ConfigStep({
                     onClick={() => setField('editMode', mode.key)}
                     className={`p-4 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                        ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                         : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className={`text-sm font-medium ${isSelected ? 'text-[#4ADE80]' : 'text-white'}`}>
+                      <h4 className={`text-sm font-medium ${isSelected ? 'text-[#46ec13]' : 'text-white'}`}>
                         {mode.label}
                       </h4>
                       {mode.tag && (
@@ -157,7 +157,7 @@ export default function ConfigStep({
           <section className="bg-[#1a1a1a] rounded-xl p-4 border border-white/[0.06]">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-white">原片占比</span>
-              <span className="text-sm font-medium text-[#4ADE80]">{value.originalRatio}%</span>
+              <span className="text-sm font-medium text-[#46ec13]">{value.originalRatio}%</span>
             </div>
             <input
               type="range"
@@ -168,7 +168,7 @@ export default function ConfigStep({
               onChange={(e) => setField('originalRatio', parseInt(e.target.value))}
               className="w-full h-2 rounded-full appearance-none bg-white/[0.06] cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #4ADE80 0%, #4ADE80 ${(value.originalRatio - 20) / 40 * 100}%, rgba(255,255,255,0.06) ${(value.originalRatio - 20) / 40 * 100}%, rgba(255,255,255,0.06) 100%)`
+                background: `linear-gradient(to right, #46ec13 0%, #46ec13 ${(value.originalRatio - 20) / 40 * 100}%, rgba(255,255,255,0.06) ${(value.originalRatio - 20) / 40 * 100}%, rgba(255,255,255,0.06) 100%)`
               }}
             />
             <div className="flex justify-between mt-2 text-[10px] text-slate-500">
@@ -194,7 +194,7 @@ export default function ConfigStep({
               <select
                 value={value.videoLanguage}
                 onChange={(e) => setField('videoLanguage', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white focus:outline-none focus:border-[#4ADE80]/50 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white focus:outline-none focus:border-[#46ec13]/50 appearance-none cursor-pointer"
               >
                 <option value="zh">简体中文</option>
                 <option value="en">English</option>
@@ -207,7 +207,7 @@ export default function ConfigStep({
               <select
                 value={value.narrationLanguage}
                 onChange={(e) => setField('narrationLanguage', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white focus:outline-none focus:border-[#4ADE80]/50 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white focus:outline-none focus:border-[#46ec13]/50 appearance-none cursor-pointer"
               >
                 <option value="zh">简体中文</option>
                 <option value="en">English</option>
@@ -228,11 +228,11 @@ export default function ConfigStep({
                 onClick={() => setField('generationMode', 'auto')}
                 className={`p-4 rounded-xl border text-left transition-all ${
                   value.generationMode === 'auto'
-                    ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                    ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                     : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                <h4 className={`text-sm font-medium mb-1 ${value.generationMode === 'auto' ? 'text-[#4ADE80]' : 'text-white'}`}>
+                <h4 className={`text-sm font-medium mb-1 ${value.generationMode === 'auto' ? 'text-[#46ec13]' : 'text-white'}`}>
                   AI 自动生成
                 </h4>
                 <p className="text-xs text-slate-500">由智能模型生成文案，完成后可继续匹配画面。</p>
@@ -241,11 +241,11 @@ export default function ConfigStep({
                 onClick={() => setField('generationMode', 'manual')}
                 className={`p-4 rounded-xl border text-left transition-all ${
                   value.generationMode === 'manual'
-                    ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                    ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                     : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                <h4 className={`text-sm font-medium mb-1 ${value.generationMode === 'manual' ? 'text-[#4ADE80]' : 'text-white'}`}>
+                <h4 className={`text-sm font-medium mb-1 ${value.generationMode === 'manual' ? 'text-[#46ec13]' : 'text-white'}`}>
                   手动输入文案
                 </h4>
                 <p className="text-xs text-slate-500">跳过文案生成，直接粘贴现有文案后匹配画面。</p>
@@ -263,7 +263,7 @@ export default function ConfigStep({
                       onClick={() => setField('speechSpeed', speed.key)}
                       className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                         value.speechSpeed === speed.key
-                          ? 'bg-[#4ADE80] text-black font-medium'
+                          ? 'bg-[#46ec13] text-black font-medium'
                           : 'bg-[#1a1a1a] text-slate-400 border border-white/[0.06] hover:border-white/[0.12]'
                       }`}
                     >
@@ -283,7 +283,7 @@ export default function ConfigStep({
                       onClick={() => setField('wordCount', opt.key)}
                       className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                         value.wordCount === opt.key
-                          ? 'bg-[#4ADE80] text-black font-medium'
+                          ? 'bg-[#46ec13] text-black font-medium'
                           : 'bg-[#1a1a1a] text-slate-400 border border-white/[0.06] hover:border-white/[0.12]'
                       }`}
                     >
@@ -303,11 +303,11 @@ export default function ConfigStep({
                 onClick={() => setField('perspective', 'first')}
                 className={`p-4 rounded-xl border text-left transition-all ${
                   value.perspective === 'first'
-                    ? 'bg-[#1a1a1a] border-[#4ADE80]/50'
+                    ? 'bg-[#1a1a1a] border-[#46ec13]/50'
                     : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                <h4 className={`text-sm font-medium mb-1 ${value.perspective === 'first' ? 'text-[#4ADE80]' : 'text-white'}`}>
+                <h4 className={`text-sm font-medium mb-1 ${value.perspective === 'first' ? 'text-[#46ec13]' : 'text-white'}`}>
                   第一人称
                 </h4>
                 <p className="text-xs text-slate-500">"我看到..."，代入感强</p>
@@ -316,11 +316,11 @@ export default function ConfigStep({
                 onClick={() => setField('perspective', 'third')}
                 className={`p-4 rounded-xl border text-left transition-all ${
                   value.perspective === 'third'
-                    ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                    ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                     : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                <h4 className={`text-sm font-medium mb-1 ${value.perspective === 'third' ? 'text-[#4ADE80]' : 'text-white'}`}>
+                <h4 className={`text-sm font-medium mb-1 ${value.perspective === 'third' ? 'text-[#46ec13]' : 'text-white'}`}>
                   第三人称
                 </h4>
                 <p className="text-xs text-slate-500">"他/她..."，客观叙述</p>
@@ -338,12 +338,12 @@ export default function ConfigStep({
                   onClick={() => setField('narrationStyle', style.key)}
                   className={`p-4 rounded-xl border text-left transition-all ${
                     value.narrationStyle === style.key
-                      ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                      ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                       : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className={`text-sm font-medium ${value.narrationStyle === style.key ? 'text-[#4ADE80]' : 'text-white'}`}>
+                    <h4 className={`text-sm font-medium ${value.narrationStyle === style.key ? 'text-[#46ec13]' : 'text-white'}`}>
                       {style.label}
                     </h4>
                     {style.version && (
@@ -362,7 +362,7 @@ export default function ConfigStep({
           <section>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-2 text-sm text-white hover:text-[#4ADE80] transition-colors"
+              className="flex items-center gap-2 text-sm text-white hover:text-[#46ec13] transition-colors"
             >
               <span>高级选项</span>
               <ChevronRight className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} />
@@ -380,11 +380,11 @@ export default function ConfigStep({
                         onClick={() => setField('scriptType', type.key)}
                         className={`p-3 rounded-xl border text-left transition-all ${
                           value.scriptType === type.key
-                            ? 'bg-[#4ADE80]/10 border-[#4ADE80]/50'
+                            ? 'bg-[#46ec13]/10 border-[#46ec13]/50'
                             : 'bg-[#1a1a1a] border-white/[0.06] hover:border-white/[0.12]'
                         }`}
                       >
-                        <h4 className={`text-sm font-medium mb-1 ${value.scriptType === type.key ? 'text-[#4ADE80]' : 'text-white'}`}>
+                        <h4 className={`text-sm font-medium mb-1 ${value.scriptType === type.key ? 'text-[#46ec13]' : 'text-white'}`}>
                           {type.label}
                         </h4>
                         <p className="text-xs text-slate-500">{type.desc}</p>
@@ -398,7 +398,7 @@ export default function ConfigStep({
                   <label className="block text-xs text-slate-400 mb-2">辅助说明（可选）</label>
                   <textarea
                     placeholder="输入额外的创作要求或背景信息..."
-                    className="w-full h-24 px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-[#4ADE80]/50 resize-none"
+                    className="w-full h-24 px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/[0.06] text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-[#46ec13]/50 resize-none"
                   />
                 </div>
               </div>
@@ -429,7 +429,7 @@ export default function ConfigStep({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-[#4ADE80]/30 text-[#4ADE80] hover:bg-[#4ADE80]/10"
+                className="border-[#46ec13]/30 text-[#46ec13] hover:bg-[#46ec13]/10"
               >
                 <Save className="w-4 h-4 mr-1.5" />保存配置
               </Button>
@@ -437,7 +437,7 @@ export default function ConfigStep({
                 size="sm"
                 onClick={onGenerate}
                 disabled={generating}
-                className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black font-medium"
+                className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black font-medium"
               >
                 <Play className="w-4 h-4 mr-1.5" />
                 {generating ? '生成中...' : '开始生成文案'}

@@ -14,6 +14,8 @@ export type ScriptItem = {
 
 export type ProjectStep = 'upload' | 'config' | 'generate';
 
+export type InferenceMode = 'fast' | 'deep' | 'frame';
+
 export type Project = {
   id: string;
   name: string;
@@ -25,6 +27,7 @@ export type Project = {
   createdAt: string;
   updatedAt: string;
   currentStep: ProjectStep;
+  inferenceMode?: InferenceMode;
   config?: {
     llmProvider?: string;
     llmModel?: string;
@@ -82,7 +85,7 @@ export function getProject(id: string): Project | undefined {
   return readAll().find((p) => p.id === id);
 }
 
-export function createProject(name: string): Project {
+export function createProject(name: string, inferenceMode: InferenceMode = 'fast'): Project {
   const now = new Date().toISOString();
   const project: Project = {
     id: uid(),
@@ -91,6 +94,7 @@ export function createProject(name: string): Project {
     createdAt: now,
     updatedAt: now,
     currentStep: 'upload',
+    inferenceMode,
   };
   const items = readAll();
   items.unshift(project);

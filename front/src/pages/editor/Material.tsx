@@ -23,9 +23,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import {
   type Project,
+  type ScriptItem,
   updateProject,
 } from '@/lib/projects-store';
 import { toast } from 'sonner';
+import CopywritingPreviewDialog from '@/components/workspace/CopywritingPreviewDialog';
+import GenerationProgressModal, {
+  type GenerationStep,
+} from '@/components/workspace/GenerationProgressModal';
 
 type Ctx = { project?: Project };
 
@@ -45,6 +50,10 @@ export default function MaterialPage() {
   const [step, setStep] = useState<StepKey>(project?.currentStep ?? 'upload');
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [progressSteps, setProgressSteps] = useState<GenerationStep[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewText, setPreviewText] = useState('');
+  const [pendingScript, setPendingScript] = useState<ScriptItem[]>([]);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [cfgLLM, setCfgLLM] = useState(project?.config?.llmProvider ?? 'openai');
@@ -106,45 +115,77 @@ export default function MaterialPage() {
     setStep('generate');
   };
 
+  const mockScript: ScriptItem[] = [
+    {
+      id: 's1',
+      startTime: '00:00:00,000',
+      endTime: '00:00:04,500',
+      originalSubtitle: '雨后的长街只剩下零星的脚步声',
+      narration: '这是一个属于他的时代——当雨还没停的时候。',
+    },
+    {
+      id: 's2',
+      startTime: '00:00:04,500',
+      endTime: '00:00:09,200',
+      originalSubtitle: '他缓缓抬头，看向远处的灯火',
+      narration: '远处的灯火跳动，像命运正在向他低声点头。',
+    },
+    {
+      id: 's3',
+      startTime: '00:00:09,200',
+      endTime: '00:00:14,000',
+      originalSubtitle: '一阵风掠过，吹起衣角',
+      narration: '风声里藏着未说出口的抉择，他终于迈出了第一步。',
+    },
+  ];
+
   const generate = async () => {
     setGenerating(true);
+    const stepsDef: GenerationStep[] = [
+      { key: 'check', label: '校验视频与配置', status: 'running' },
+      { key: 'llm', label: '正在请求大模型', status: 'pending', hint: 'AI 正在创作解说文案…' },
+      { key: 'parse', label: '解析生成结果', status: 'pending' },
+    ];
+    setProgressSteps(stepsDef);
     try {
-      await new Promise((r) => setTimeout(r, 1200));
-      const now = new Date();
-      updateProject(id, {
-        status: 'completed',
-        currentStep: 'generate',
-        scriptItems: [
-          {
-            id: 's1',
-            startTime: '00:00:00,000',
-            endTime: '00:00:04,500',
-            originalSubtitle: '雨后的长街只剩下零星的脚步声',
-            narration: '这是一个属于他的时代——当雨还没停的时候。',
-          },
-          {
-            id: 's2',
-            startTime: '00:00:04,500',
-            endTime: '00:00:09,200',
-            originalSubtitle: '他缓缓抬头，看向远处的灯火',
-            narration: '远处的灯火跳动，像命运正在向他低声点头。',
-          },
-          {
-            id: 's3',
-            startTime: '00:00:09,200',
-            endTime: '00:00:14,000',
-            originalSubtitle: '一阵风掠过，吹起衣角',
-            narration: '风声里藏着未说出口的抉择，他终于迈出了第一步。',
-          },
-        ],
-      });
-      toast.success(`脚本生成完成，共 3 段 · ${now.toLocaleTimeString()}`);
-      navigate(`/projects/${id}/analysis`);
+      await new Promise((r) => setTimeout(r, 600));
+      setProgressSteps((prev) =>
+        prev.map((s) =>
+          s.key === 'check' ? { ...s, status: 'done' } : s.key === 'llm' ? { ...s, status: 'running' } : s
+        )
+      );
+      await new Promise((r) => setTimeout(r, 1000));
+      setProgressSteps((prev) =>
+        prev.map((s) =>
+          s.key === 'llm' ? { ...s, status: 'done' } : s.key === 'parse' ? { ...s, status: 'running' } : s
+        )
+      );
+      await new Promise((r) => setTimeout(r, 600));
+      setProgressSteps((prev) => prev.map((s) => (s.key === 'parse' ? { ...s, status: 'done' } : s)));
+      setPendingScript(mockScript);
+      setPreviewText(mockScript.map((s) => s.narration).join('\n\n'));
+      setGenerating(false);
+      setProgressSteps([]);
+      setPreviewOpen(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '生成失败');
-    } finally {
       setGenerating(false);
+      setProgressSteps([]);
     }
+  };
+
+  const confirmPreview = (text: string) => {
+    const lines = text.split(/\n\n+/).filter(Boolean);
+    const next = pendingScript.map((s, i) => ({ ...s, narration: lines[i] ?? s.narration }));
+    updateProject(id, {
+      status: 'completed',
+      currentStep: 'generate',
+      scriptItems: next,
+    });
+    const now = new Date();
+    toast.success(`脚本已保存，共 ${next.length} 段 · ${now.toLocaleTimeString()}`);
+    setPreviewOpen(false);
+    navigate(`/projects/${id}/analysis`);
   };
 
   return (
@@ -359,6 +400,27 @@ export default function MaterialPage() {
           </div>
         ) : null}
       </div>
+
+      <GenerationProgressModal
+        open={generating}
+        steps={progressSteps}
+        onCancel={() => {
+          setGenerating(false);
+          setProgressSteps([]);
+          toast.info('已取消生成');
+        }}
+      />
+
+      <CopywritingPreviewDialog
+        open={previewOpen}
+        initialText={previewText}
+        onClose={() => setPreviewOpen(false)}
+        onRegenerate={() => {
+          setPreviewOpen(false);
+          void generate();
+        }}
+        onConfirm={confirmPreview}
+      />
 
       {/* Sticky footer actions */}
       <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-white/5 bg-[#060a07]/95 backdrop-blur px-6 py-3 flex items-center justify-between">

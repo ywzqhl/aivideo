@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import CreateProjectModal from '@/components/workspace/CreateProjectModal';
+import CreateProjectModal, { type InferenceMode } from '@/components/workspace/CreateProjectModal';
 import VideoUploadStep from '@/components/workspace/VideoUploadStep';
 import SubtitleStep from '@/components/workspace/SubtitleStep';
 import ConfigStep, { type ConfigFormValue } from '@/components/workspace/ConfigStep';
@@ -19,7 +19,6 @@ import {
 import { getAPIBaseURL } from '@/lib/config';
 import { Zap, ChevronLeft, ChevronRight, RotateCcw, Bell, User, Check, Loader2, AlertTriangle, FolderOpen, X } from 'lucide-react';
 
-type ProjectType = 'movie_review' | 'drama_mix' | 'drama_review';
 type WorkflowStep = 'upload' | 'subtitle' | 'config' | 'generate';
 
 const stepLabels: { key: WorkflowStep; label: string }[] = [
@@ -29,13 +28,13 @@ const stepLabels: { key: WorkflowStep; label: string }[] = [
   { key: 'generate', label: '内容生成' },
 ];
 
-const projectTypeLabels: Record<ProjectType, string> = {
-  movie_review: '影视解说',
-  drama_mix: '短剧混剪',
-  drama_review: '短剧解说',
+const inferenceModeLabels: Record<InferenceMode, string> = {
+  fast: '快速推理',
+  deep: '深度推理',
+  frame: '逐帧推理',
 };
 
-interface Project { name: string; type: ProjectType; }
+interface Project { name: string; mode: InferenceMode; }
 
 const defaultConfig: ConfigFormValue = {
   // 基础配置
@@ -122,8 +121,8 @@ export default function Workspace() {
     return true;
   }, [currentStep, uploadedVideoPath, isUploadingVideo, recognitionDone]);
 
-  const handleCreateProject = (name: string, type: ProjectType) => {
-    setProject({ name, type });
+  const handleCreateProject = (name: string, mode: InferenceMode) => {
+    setProject({ name, mode });
     setCreateModalOpen(false);
     setCurrentStep('upload');
     setUploadedFile(null);
@@ -341,7 +340,7 @@ export default function Workspace() {
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400">项目名称：</span>
             <span className="text-sm font-medium text-white">{project.name}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">{projectTypeLabels[project.type]}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[#46ec13]/10 text-[#46ec13] border border-[#46ec13]/20">{inferenceModeLabels[project.mode]}</span>
           </div>
           {uploadedVideoPath && <div className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" />已接入后端工作区</div>}
         </div>
@@ -385,7 +384,7 @@ export default function Workspace() {
       <div className="flex-1 overflow-hidden">
         {currentStep === 'upload' && <VideoUploadStep uploadedFile={uploadedFile} onFileSelect={handleVideoFileSelect} onNext={handleNext} onBack={handlePrev} videoUrl={uploadedVideoPath ? `${getAPIBaseURL()}${uploadedVideoPath}` : ''} />}
         {currentStep === 'subtitle' && <SubtitleStep subtitleMode={subtitleMode} onModeSelect={setSubtitleMode} isRecognizing={isRecognizing} recognitionDone={recognitionDone} onStartRecognition={handleStartRecognition} subtitles={subtitles} onSubtitlesChange={setSubtitles} onSubtitleFileSelect={handleSubtitleFileSelect} videoFile={uploadedFile} videoUrl={uploadedVideoPath ? `${getAPIBaseURL()}${uploadedVideoPath}` : ''} onReupload={handleReset} />}
-        {currentStep === 'config' && <ConfigStep projectType={project?.type || 'movie_review'} value={config} onChange={setConfig} onGenerate={handleGenerate} generating={isGenerating} onBack={() => setCurrentStep('subtitle')} onReupload={handleReset} />}
+        {currentStep === 'config' && <ConfigStep projectType={project?.mode || 'fast'} value={config} onChange={setConfig} onGenerate={handleGenerate} generating={isGenerating} onBack={() => setCurrentStep('subtitle')} onReupload={handleReset} />}
         {currentStep === 'generate' && (
           <div className="h-full flex items-center justify-center px-6">
             <div className="w-full max-w-3xl rounded-2xl border border-white/[0.06] bg-white/[0.03] p-8">

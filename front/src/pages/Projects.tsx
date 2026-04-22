@@ -20,15 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import CreateProjectModal, { type InferenceMode } from '@/components/workspace/CreateProjectModal';
 import {
   createProject,
   deleteProject,
@@ -70,7 +62,6 @@ function ProjectsInner() {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
   const [view, setView] = useState<'card' | 'table'>('card');
   const [createOpen, setCreateOpen] = useState(false);
-  const [newName, setNewName] = useState('');
 
   const reload = () => setProjects(listProjects());
 
@@ -95,14 +86,10 @@ function ProjectsInner() {
     return list;
   }, [projects, query, tab, sortKey]);
 
-  const handleCreate = () => {
-    if (!newName.trim()) {
-      toast.error('请输入项目名称');
-      return;
-    }
-    const p = createProject(newName);
+  const handleCreate = (name: string, mode: InferenceMode) => {
+    const p = createProject(name, mode);
     setCreateOpen(false);
-    setNewName('');
+    toast.success('项目已创建');
     navigate(`/projects/${p.id}/material`);
   };
 
@@ -321,38 +308,11 @@ function ProjectsInner() {
         )}
       </div>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="bg-[#0b110d] border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle>新建项目</DialogTitle>
-            <DialogDescription className="text-white/55">
-              为你的新视频项目起一个名称，稍后可以在编辑页面上传视频素材。
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="newname" className="text-xs text-white/70">项目名称</Label>
-            <Input
-              id="newname"
-              autoFocus
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="例如：大明王朝开场解说"
-              className="bg-[#0f1611] border-white/10 focus-visible:ring-[#46ec13]/30"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setCreateOpen(false)}>
-              取消
-            </Button>
-            <Button
-              onClick={handleCreate}
-              className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold"
-            >
-              创建并进入编辑
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateProjectModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreate={handleCreate}
+      />
     </AppLayout>
   );
 }

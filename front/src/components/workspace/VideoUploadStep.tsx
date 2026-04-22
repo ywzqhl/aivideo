@@ -122,14 +122,14 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
         {isUploading ? (
           /* 上传进度 */
           <div className="h-full flex flex-col items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-[#4ADE80]/10 flex items-center justify-center mb-6">
-              <CloudUpload className="w-10 h-10 text-[#4ADE80]" />
+            <div className="w-20 h-20 rounded-full bg-[#46ec13]/10 flex items-center justify-center mb-6">
+              <CloudUpload className="w-10 h-10 text-[#46ec13]" />
             </div>
             <p className="text-lg font-medium text-white mb-2">上传中...</p>
             <p className="text-sm text-slate-500 mb-6">进度: {Math.min(Math.round(uploadProgress), 100)}%</p>
             <div className="w-96 h-2 bg-white/[0.08] rounded-full overflow-hidden">
               <div 
-                className="h-full bg-[#4ADE80] rounded-full transition-all duration-200"
+                className="h-full bg-[#46ec13] rounded-full transition-all duration-200"
                 style={{ width: `${Math.min(uploadProgress, 100)}%` }}
               />
             </div>
@@ -143,8 +143,8 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
             onClick={() => fileInputRef.current?.click()}
             className={`h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
               isDragging
-                ? 'border-[#4ADE80] bg-[#4ADE80]/5'
-                : 'border-white/[0.1] bg-white/[0.01] hover:border-[#4ADE80]/30 hover:bg-white/[0.02]'
+                ? 'border-[#46ec13] bg-[#46ec13]/5'
+                : 'border-white/[0.1] bg-white/[0.01] hover:border-[#46ec13]/30 hover:bg-white/[0.02]'
             }`}
           >
             <input
@@ -154,14 +154,14 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
               onChange={handleSelect}
               className="hidden"
             />
-            <div className="w-20 h-20 rounded-full bg-[#4ADE80]/10 flex items-center justify-center mb-6">
-              <CloudUpload className="w-10 h-10 text-[#4ADE80]" />
+            <div className="w-20 h-20 rounded-full bg-[#46ec13]/10 flex items-center justify-center mb-6">
+              <CloudUpload className="w-10 h-10 text-[#46ec13]" />
             </div>
             <p className="text-lg font-medium text-white mb-2">拖拽或选择文件上传</p>
             <p className="text-sm text-slate-500 mb-6">
               支持 MP4, MOV, AVI, WEBM 等格式，文件大小不超过 1GB，建议视频时长不超过 40 分钟
             </p>
-            <Button className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black font-medium px-6">
+            <Button className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black font-medium px-6">
               选择文件
             </Button>
           </div>
@@ -201,7 +201,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                 {/* 原视频时长 */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-400">原视频时长</span>
-                  <span className="text-sm text-[#4ADE80] font-medium">{formatTime(videoDuration)}</span>
+                  <span className="text-sm text-[#46ec13] font-medium">{formatTime(videoDuration)}</span>
                 </div>
 
                 {/* 选择裁剪范围 */}
@@ -230,7 +230,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                     />
                     <div className="relative h-2 bg-white/[0.08] rounded-full">
                       <div 
-                        className="absolute h-full bg-[#4ADE80] rounded-full"
+                        className="absolute h-full bg-[#46ec13] rounded-full"
                         style={{ 
                           left: `${(trimStart / videoDuration) * 100}%`, 
                           right: `${100 - (trimEnd / videoDuration) * 100}%` 
@@ -252,7 +252,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                       type="number"
                       value={trimStart.toFixed(1)}
                       onChange={(e) => handleTrimStartChange(parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:border-[#4ADE80]/50"
+                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:border-[#46ec13]/50"
                       min="0"
                       max={trimEnd}
                       step="0.1"
@@ -264,7 +264,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                       type="number"
                       value={trimEnd.toFixed(1)}
                       onChange={(e) => handleTrimEndChange(parseFloat(e.target.value) || videoDuration)}
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:border-[#4ADE80]/50"
+                      className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-white outline-none focus:border-[#46ec13]/50"
                       min={trimStart}
                       max={videoDuration}
                       step="0.1"
@@ -276,12 +276,12 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                 <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <span className="text-sm text-slate-400">裁剪后时长</span>
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-[#4ADE80]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="w-4 h-4 text-[#46ec13]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10"/>
                       <path d="M12 6v6l4 2"/>
                     </svg>
-                    <span className="text-sm text-[#4ADE80] font-medium">{formatTime(trimEnd - trimStart)}</span>
-                    <span className="text-xs text-[#4ADE80]/70">可自动转录</span>
+                    <span className="text-sm text-[#46ec13] font-medium">{formatTime(trimEnd - trimStart)}</span>
+                    <span className="text-xs text-[#46ec13]/70">可自动转录</span>
                   </div>
                 </div>
 
@@ -290,7 +290,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
                   <Button variant="ghost" size="sm" className="text-slate-500 hover:text-slate-300">
                     跳过裁剪
                   </Button>
-                  <Button size="sm" className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black font-medium gap-1.5">
+                  <Button size="sm" className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black font-medium gap-1.5">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="6" cy="6" r="3"/>
                       <path d="M8.12 8.12 12 12"/>
@@ -328,7 +328,7 @@ export default function VideoUploadStep({ uploadedFile, onFileSelect, onNext, on
             </Button>
           )}
           {onNext && (
-            <Button size="sm" onClick={onNext} disabled={!uploadedFile} className="bg-[#4ADE80] hover:bg-[#4ADE80]/90 text-black font-medium gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+            <Button size="sm" onClick={onNext} disabled={!uploadedFile} className="bg-[#46ec13] hover:bg-[#46ec13]/90 text-black font-medium gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
               下一步：配置参数
               <ArrowRight className="w-4 h-4" />
             </Button>

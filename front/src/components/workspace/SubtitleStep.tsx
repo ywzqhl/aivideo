@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Upload, FileText, Play, Video, Maximize2, RefreshCw, Download, Settings, ArrowLeft, ArrowRight, CloudUpload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Upload, FileText, Play, Video, Maximize2, RefreshCw, Download, Settings, ArrowLeft, ArrowRight, CloudUpload, Info, FileVideo, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SubtitleLine } from '@/lib/api';
 
@@ -51,6 +51,27 @@ function formatTimeDisplay(timeStr: string): string {
   return `${totalSeconds}.${firstDecimal}s`;
 }
 
+function formatClock(sec: number, withHour = false): string {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  if (withHour || h > 0) {
+    return `${String(h).padStart(2, '0')}:${mm}:${ss}`;
+  }
+  return `${mm}:${ss}`;
+}
+
+function formatFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return '未知';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))}${sizes[i]}`;
+}
+
 export default function SubtitleStep({
   subtitleMode,
   onModeSelect,
@@ -60,15 +81,42 @@ export default function SubtitleStep({
   subtitles,
   onSubtitlesChange,
   onSubtitleFileSelect,
-  videoFile: _videoFile,
+  videoFile,
   videoUrl,
   onReupload,
   onBack,
   onNext,
 }: SubtitleStepProps) {
   const srtInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [resolution, setResolution] = useState<string>('');
+
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+    setResolution('');
+  }, [videoUrl]);
+
+  const onLoadedMetadata = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    setDuration(el.duration || 0);
+    if (el.videoWidth && el.videoHeight) {
+      setResolution(`${el.videoWidth}×${el.videoHeight}`);
+    }
+  };
+
+  const onTimeUpdate = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    setCurrentTime(el.currentTime || 0);
+  };
+
+  const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   const handleSrtUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -172,39 +220,116 @@ export default function SubtitleStep({
     );
   }
 
+  const fileSizeText = formatFileSize(videoFile?.size ?? 0);
+  const durationText = duration > 0 ? formatClock(duration, true) : '00:00:00';
+
   // 字幕编辑状态
   return (
     <div className="h-full flex flex-col">
-      {/* 主内容区：左视频 + 右字幕列表 */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-        {/* 左侧：视频预览 */}
-        <div className="md:border-r border-white/[0.06] flex flex-col p-5">
-          <div className="relative flex-1 min-h-[320px] rounded-2xl bg-black flex flex-col items-center justify-center p-6 overflow-hidden">
-            {videoUrl ? (
-              <>
-                <video src={videoUrl} controls className="max-w-full max-h-full rounded-lg" />
-                <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
-                  <Maximize2 className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
-                  <Maximize2 className="w-4 h-4" />
-                </button>
-                <div className="w-14 h-14 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center mb-4">
-                  <Video className="w-6 h-6 text-white/60" />
+      {/* 主内容区：左视频信息 + 右字幕列表，等高各自滚动 */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden min-h-0">
+        {/* 左侧：视频预览 + 元数据 */}
+        <div className="md:border-r border-white/[0.06] overflow-y-auto">
+          <div className="p-5 space-y-5">
+            <div className="relative aspect-video rounded-2xl bg-black flex flex-col items-center justify-center p-6 overflow-hidden">
+              {videoUrl ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    controls
+                    onLoadedMetadata={onLoadedMetadata}
+                    onTimeUpdate={onTimeUpdate}
+                    className="max-w-full max-h-full rounded-lg"
+                  />
+                  <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                  <div className="w-14 h-14 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center mb-4">
+                    <Video className="w-6 h-6 text-white/60" />
+                  </div>
+                  <p className="text-white font-medium text-base mb-1">视频链接已失效</p>
+                  <p className="text-xs text-slate-500 mb-5">视频文件仅在本地处理，不上传云端</p>
+                  <Button
+                    onClick={onReupload}
+                    className="bg-[#46ec13] hover:bg-[#37c00c] text-black font-medium gap-1.5"
+                  >
+                    <RefreshCw className="w-4 h-4" />重新选择视频
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* 时间轴 */}
+            <div>
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span className="font-mono">{formatClock(currentTime)}</span>
+                <span className="font-mono">{durationText}</span>
+              </div>
+              <div className="relative mt-2 h-1 rounded-full bg-white/10">
+                <div className="absolute left-0 top-0 h-full rounded-full bg-[#46ec13]/60" style={{ width: `${progressPct}%` }} />
+                <div
+                  className="absolute top-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#46ec13] shadow"
+                  style={{ left: `${progressPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* 元数据 */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Info className="w-4 h-4 text-[#46ec13]" />
+                <span className="text-sm font-semibold text-white">元数据</span>
+              </div>
+
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileVideo className="w-4 h-4 text-[#46ec13]" />
+                  <span className="text-sm font-medium text-white">视频信息</span>
                 </div>
-                <p className="text-white font-medium text-base mb-1">视频链接已失效</p>
-                <p className="text-xs text-slate-500 mb-5">视频文件仅在本地处理，不上传云端</p>
-                <Button
-                  onClick={onReupload}
-                  className="bg-[#46ec13] hover:bg-[#37c00c] text-black font-medium gap-1.5"
-                >
-                  <RefreshCw className="w-4 h-4" />重新选择视频
-                </Button>
-              </>
-            )}
+                <dl className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">分辨率</dt>
+                    <dd className="text-slate-200 font-medium">{resolution || '未知'}</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">时长</dt>
+                    <dd className="text-slate-200 font-medium font-mono">{durationText}</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">文件大小</dt>
+                    <dd className="text-slate-200 font-medium">{fileSizeText}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Volume2 className="w-4 h-4 text-[#46ec13]" />
+                  <span className="text-sm font-medium text-white">音频信息</span>
+                </div>
+                <dl className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">采样率</dt>
+                    <dd className="text-slate-200 font-medium">48kHz</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">声道</dt>
+                    <dd className="text-slate-200 font-medium">立体声</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">比特率</dt>
+                    <dd className="text-slate-200 font-medium">192kbps</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
           </div>
         </div>
 

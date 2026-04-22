@@ -266,6 +266,8 @@ export default function MaterialPage() {
             videoFile={uploadedFile}
             videoUrl={videoUrl}
             onReupload={() => setPhase('upload')}
+            onBack={() => setPhase('upload')}
+            onNext={recognitionDone ? () => setPhase('config') : undefined}
           />
         )}
         {phase === 'config' && (
@@ -321,36 +323,6 @@ export default function MaterialPage() {
           </div>
         )}
       </div>
-
-      {/* Sub-step progression helpers (shown only on upload phase when video uploaded) */}
-      {phase === 'upload' && uploadedFile && (
-        <div className="mt-4 flex items-center justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setPhase('subtitle')}
-            className="border-[#46ec13]/40 text-[#46ec13] hover:bg-[#46ec13]/10 bg-transparent"
-          >
-            下一步：字幕识别 →
-          </Button>
-        </div>
-      )}
-      {phase === 'subtitle' && recognitionDone && (
-        <div className="mt-4 flex items-center justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setPhase('upload')}
-            className="border-white/15 bg-transparent text-white hover:bg-white/5"
-          >
-            ← 返回上一步
-          </Button>
-          <Button
-            onClick={() => setPhase('config')}
-            className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6"
-          >
-            下一步：配置参数 →
-          </Button>
-        </div>
-      )}
 
       <GenerationProgressModal
         open={generating}

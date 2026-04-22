@@ -233,10 +233,10 @@ export default function SubtitleStep({
     <div className="h-full flex flex-col">
       {/* 主内容区：左视频信息(1) + 右字幕列表(2)，等高各自滚动 */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_2fr] overflow-hidden min-h-0">
-        {/* 左侧：视频预览 + 元数据 */}
-        <div className="md:border-r border-white/[0.06] overflow-y-auto">
-          <div className="p-5 space-y-5">
-            <div className="relative aspect-video w-full rounded-2xl bg-black flex items-center justify-center overflow-hidden">
+        {/* 左侧：视频预览(固定) + 元数据(滚动) */}
+        <div className="flex flex-col min-h-0 md:border-r border-white/[0.06]">
+          <div className="p-5 pb-4 shrink-0 space-y-4">
+            <div className="relative aspect-video w-full rounded-2xl bg-black overflow-hidden">
               {videoUrl ? (
                 <>
                   <video
@@ -247,12 +247,12 @@ export default function SubtitleStep({
                     onTimeUpdate={onTimeUpdate}
                     className="absolute inset-0 w-full h-full object-contain"
                   />
-                  <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
+                  <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white z-10">
                     <Maximize2 className="w-4 h-4" />
                   </button>
                 </>
               ) : (
-                <>
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
                     <Maximize2 className="w-4 h-4" />
                   </button>
@@ -267,7 +267,7 @@ export default function SubtitleStep({
                   >
                     <RefreshCw className="w-4 h-4" />重新选择视频
                   </Button>
-                </>
+                </div>
               )}
             </div>
 
@@ -285,55 +285,55 @@ export default function SubtitleStep({
                 />
               </div>
             </div>
+          </div>
 
-            {/* 元数据 */}
-            <div>
+          {/* 元数据（独立滚动） */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-5 pb-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="w-4 h-4 text-[#46ec13]" />
+              <span className="text-sm font-semibold text-white">元数据</span>
+            </div>
+
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Info className="w-4 h-4 text-[#46ec13]" />
-                <span className="text-sm font-semibold text-white">元数据</span>
+                <FileVideo className="w-4 h-4 text-[#46ec13]" />
+                <span className="text-sm font-medium text-white">视频信息</span>
               </div>
-
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileVideo className="w-4 h-4 text-[#46ec13]" />
-                  <span className="text-sm font-medium text-white">视频信息</span>
+              <dl className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">分辨率</dt>
+                  <dd className="text-slate-200 font-medium">{resolution || '未知'}</dd>
                 </div>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">分辨率</dt>
-                    <dd className="text-slate-200 font-medium">{resolution || '未知'}</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">时长</dt>
-                    <dd className="text-slate-200 font-medium font-mono">{durationText}</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">文件大小</dt>
-                    <dd className="text-slate-200 font-medium">{fileSizeText}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Volume2 className="w-4 h-4 text-[#46ec13]" />
-                  <span className="text-sm font-medium text-white">音频信息</span>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">时长</dt>
+                  <dd className="text-slate-200 font-medium font-mono">{durationText}</dd>
                 </div>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">采样率</dt>
-                    <dd className="text-slate-200 font-medium">48kHz</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">声道</dt>
-                    <dd className="text-slate-200 font-medium">立体声</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-slate-500">比特率</dt>
-                    <dd className="text-slate-200 font-medium">192kbps</dd>
-                  </div>
-                </dl>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">文件大小</dt>
+                  <dd className="text-slate-200 font-medium">{fileSizeText}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Volume2 className="w-4 h-4 text-[#46ec13]" />
+                <span className="text-sm font-medium text-white">音频信息</span>
               </div>
+              <dl className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">采样率</dt>
+                  <dd className="text-slate-200 font-medium">48kHz</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">声道</dt>
+                  <dd className="text-slate-200 font-medium">立体声</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-slate-500">比特率</dt>
+                  <dd className="text-slate-200 font-medium">192kbps</dd>
+                </div>
+              </dl>
             </div>
           </div>
         </div>

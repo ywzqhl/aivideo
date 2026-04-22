@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import auth, health, jobs, system, uploads, workbench_state
+from app.api.routers import auth, health, jobs, system, tts, uploads, workbench_state
 from app.config import config
 from app.services.llm.providers import register_all_providers
 from app.utils import utils
@@ -41,12 +41,13 @@ def create_app() -> FastAPI:
     app.include_router(jobs, prefix="/api/v1")
     app.include_router(auth, prefix="/api/v1")
     app.include_router(uploads, prefix="/api/v1")
+    app.include_router(tts, prefix="/api/v1")
     app.include_router(workbench_state, prefix="/api/v1")
 
-    # 挂载上传文件目录为静态文件服务
+    # 挂载上传文件目录为静态文件服务（前端上传视频/字幕 + TTS 合成输出）
     upload_root = Path(utils.workspace_dir()) / "frontend_uploads"
-    if upload_root.exists():
-        app.mount("/uploads", StaticFiles(directory=str(upload_root)), name="uploads")
+    upload_root.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(upload_root)), name="uploads")
 
     # 前端运行时配置接口（前端同源部署时 API_BASE_URL 为空字符串使用相对路径）
     @app.get("/api/config")

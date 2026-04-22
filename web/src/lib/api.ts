@@ -290,6 +290,63 @@ export async function getRuntimeConfig(): Promise<RuntimeConfigResponse> {
   return requestJson<RuntimeConfigResponse>('/api/v1/system/config', { method: 'GET' });
 }
 
+export type TtsVoice = {
+  id: string;
+  display_name: string;
+  locale: string;
+  gender: string;
+  engine: string;
+  tier: 'basic' | 'premium';
+};
+
+export type TtsVoicesResponse = {
+  voices: TtsVoice[];
+  default_engine: string;
+};
+
+export type TtsSynthesizeRequest = {
+  text: string;
+  voice_name: string;
+  voice_rate?: number;
+  voice_pitch?: number;
+  tts_engine?: string;
+};
+
+export type TtsSynthesizeResponse = {
+  path: string;
+  url: string;
+  filename: string;
+  size: number;
+};
+
+export async function listTtsVoices(locales = 'zh-CN,en-US'): Promise<TtsVoicesResponse> {
+  const url = `/api/v1/tts/voices?locales=${encodeURIComponent(locales)}`;
+  return requestJson<TtsVoicesResponse>(url, { method: 'GET' });
+}
+
+export async function synthesizeTts(
+  request: TtsSynthesizeRequest
+): Promise<TtsSynthesizeResponse> {
+  return requestJson<TtsSynthesizeResponse>('/api/v1/tts/synthesize', {
+    method: 'POST',
+    body: JSON.stringify({
+      text: request.text,
+      voice_name: request.voice_name,
+      voice_rate: request.voice_rate ?? 1.0,
+      voice_pitch: request.voice_pitch ?? 1.0,
+      tts_engine: request.tts_engine || '',
+    }),
+  });
+}
+
+export function resolveAssetUrl(url: string): string {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = config.API_BASE_URL || '';
+  if (!base) return url;
+  return `${base.replace(/\/$/, '')}${url}`;
+}
+
 export async function getJobStatus(taskId: string): Promise<JobStatusResponse> {
   return requestJson<JobStatusResponse>(`/api/v1/jobs/${taskId}`, { method: 'GET' });
 }

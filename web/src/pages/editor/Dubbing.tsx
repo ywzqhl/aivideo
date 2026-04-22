@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -25,33 +25,21 @@ import {
 } from '@/lib/projects-store';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  listTtsVoices,
+  resolveAssetUrl,
+  synthesizeTts,
+  type TtsVoice,
+} from '@/lib/api';
 
 type Ctx = { project?: Project };
 
 type Tier = 'basic' | 'premium';
 type VoiceMode = 'builtin' | 'clone';
-type AudioStatus = 'pending' | 'ready' | 'generating';
+type AudioStatus = 'pending' | 'ready' | 'generating' | 'error';
 
-type Voice = {
-  id: string;
-  name: string;
-  tier: Tier;
-};
-
-const BUILTIN_VOICES: Voice[] = [
-  { id: 'v1', name: '齐静春', tier: 'basic' },
-  { id: 'v2', name: '磁性男声', tier: 'basic' },
-  { id: 'v3', name: '贾小军', tier: 'basic' },
-  { id: 'v4', name: '麦克阿瑟', tier: 'basic' },
-  { id: 'v5', name: '顾我电影解说', tier: 'basic' },
-  { id: 'v6', name: '温柔女声', tier: 'basic' },
-  { id: 'v7', name: '历史解说', tier: 'basic' },
-  { id: 'v8', name: '纪录片解说', tier: 'basic' },
-  { id: 'v9', name: '情感女声', tier: 'premium' },
-  { id: 'v10', name: '激情热血', tier: 'premium' },
-  { id: 'v11', name: '沉稳旁白', tier: 'premium' },
-  { id: 'v12', name: '影视感男声', tier: 'premium' },
-];
+const PREVIEW_SAMPLE_TEXT =
+  '欢迎使用 AIVideo，这是一段用于试听的语音样本。';
 
 function formatTime(value: string): string {
   const match = value.match(/^(\d+):(\d+):(\d+)[.,]?(\d*)$/);
@@ -110,19 +98,51 @@ export default function DubbingPage() {
 
   const [tier, setTier] = useState<Tier>('basic');
   const [voiceMode, setVoiceMode] = useState<VoiceMode>('builtin');
-  const [voiceId, setVoiceId] = useState(
-    project?.config?.ttsVoice ?? BUILTIN_VOICES[0].id
-  );
+  const [voiceId, setVoiceId] = useState<string>(project?.config?.ttsVoice ?? '');
   const [rate, setRate] = useState(1);
   const [volume, setVolume] = useState(1);
+
+  const [voices, setVoices] = useState<TtsVoice[]>([]);
+  const [voicesLoading, setVoicesLoading] = useState(true);
+  const [previewBusy, setPreviewBusy] = useState<string>('');
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const initialScript = project?.scriptItems ?? [];
   const [items, setItems] = useState<ScriptItem[]>(initialScript);
   const [audioStatus, setAudioStatus] = useState<Record<string, AudioStatus>>(
     Object.fromEntries(initialScript.map((s) => [s.id, 'pending' as AudioStatus]))
   );
+  const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkSynth, setBulkSynth] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await listTtsVoices('zh-CN,en-US');
+        if (cancelled) return;
+        setVoices(resp.voices);
+        if (!voiceId && resp.voices.length > 0) {
+          const firstBasic = resp.voices.find((v) => v.tier === 'basic');
+          setVoiceId((firstBasic ?? resp.voices[0]).id);
+        }
+      } catch (err) {
+        console.error('load voices failed', err);
+        toast.error('加载音色列表失败，请检查后端');
+      } finally {
+        if (!cancelled) setVoicesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const counts = useMemo(() => {
     const total = items.length;
@@ -158,29 +178,95 @@ export default function DubbingPage() {
     });
   };
 
+  const synthesizeForRow = async (row: ScriptItem): Promise<boolean> => {
+    if (!voiceId) {
+      toast.error('请先选择音色');
+      return false;
+    }
+    const text = row.narration.trim();
+    if (!text) return false;
+    setAudioStatus((s) => ({ ...s, [row.id]: 'generating' }));
+    try {
+      const resp = await synthesizeTts({
+        text,
+        voice_name: voiceId,
+        voice_rate: rate,
+        voice_pitch: 1.0,
+      });
+      setAudioUrls((m) => ({ ...m, [row.id]: resp.url }));
+      setAudioStatus((s) => ({ ...s, [row.id]: 'ready' }));
+      return true;
+    } catch (err) {
+      console.error('tts failed', err);
+      setAudioStatus((s) => ({ ...s, [row.id]: 'error' }));
+      return false;
+    }
+  };
+
   const genOne = async (rowId: string) => {
-    setAudioStatus((s) => ({ ...s, [rowId]: 'generating' }));
-    await new Promise((r) => setTimeout(r, 900));
-    setAudioStatus((s) => ({ ...s, [rowId]: 'ready' }));
-    toast.success('音频生成完成');
+    const row = items.find((x) => x.id === rowId);
+    if (!row) return;
+    const ok = await synthesizeForRow(row);
+    if (ok) toast.success('音频生成完成');
+    else toast.error('音频生成失败');
   };
 
   const genAll = async () => {
-    if (items.length === 0) {
+    if (!voiceId) {
+      toast.error('请先选择音色');
+      return;
+    }
+    const targets = items.filter((it) => it.narration.trim().length > 0);
+    if (targets.length === 0) {
       toast.error('没有可生成的脚本片段');
       return;
     }
     setBulkSynth(true);
+    let success = 0;
     try {
-      for (const it of items) {
-        if (!it.narration.trim()) continue;
-        setAudioStatus((s) => ({ ...s, [it.id]: 'generating' }));
-        await new Promise((r) => setTimeout(r, 350));
-        setAudioStatus((s) => ({ ...s, [it.id]: 'ready' }));
+      for (const it of targets) {
+        const ok = await synthesizeForRow(it);
+        if (ok) success += 1;
       }
-      toast.success(`配音生成完成`);
+      if (success === targets.length) {
+        toast.success(`配音生成完成，共 ${success} 段`);
+      } else {
+        toast.error(`完成 ${success}/${targets.length} 段，其余失败`);
+      }
     } finally {
       setBulkSynth(false);
+    }
+  };
+
+  const playRowAudio = (rowId: string) => {
+    const url = audioUrls[rowId];
+    if (!url) return;
+    const audio = new Audio(resolveAssetUrl(url));
+    audio.play().catch(() => {
+      toast.error('音频播放失败');
+    });
+  };
+
+  const previewVoice = async (voice: TtsVoice) => {
+    if (previewBusy) return;
+    setPreviewBusy(voice.id);
+    try {
+      const resp = await synthesizeTts({
+        text: PREVIEW_SAMPLE_TEXT,
+        voice_name: voice.id,
+        voice_rate: rate,
+      });
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      const audio = new Audio(resolveAssetUrl(resp.url));
+      previewAudioRef.current = audio;
+      await audio.play();
+    } catch (err) {
+      console.error('preview failed', err);
+      toast.error('试听失败');
+    } finally {
+      setPreviewBusy('');
     }
   };
 
@@ -217,9 +303,7 @@ export default function DubbingPage() {
   };
 
   const hasVideo = !!project.videoUrl;
-  const visibleVoices = BUILTIN_VOICES.filter(
-    (v) => tier === 'premium' || v.tier === 'basic'
-  );
+  const visibleVoices = voices.filter((v) => v.tier === tier);
 
   return (
     <div className="container-workspace py-8 pb-36 space-y-6">
@@ -328,58 +412,85 @@ export default function DubbingPage() {
           <span>内置音色</span>
         </label>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-          {visibleVoices.map((v) => {
-            const active = voiceMode === 'builtin' && voiceId === v.id;
-            return (
-              <button
-                type="button"
-                key={v.id}
-                onClick={() => {
-                  setVoiceMode('builtin');
-                  setVoiceId(v.id);
-                }}
-                className={cn(
-                  'text-left rounded-xl border p-5 transition relative h-[120px] flex flex-col justify-between',
-                  active
-                    ? 'border-[#46ec13] bg-[#46ec13]/[0.08]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/25'
-                )}
-              >
-                {active ? (
-                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-[#46ec13] bg-[#46ec13]/20 flex items-center justify-center">
-                    <span className="w-2 h-2 rounded-full bg-[#46ec13]" />
-                  </span>
-                ) : null}
-                <div>
-                  <div className="text-base font-semibold">{v.name}</div>
-                  <span
-                    className={cn(
-                      'inline-block mt-2 text-[11px] px-2 py-0.5 rounded',
-                      v.tier === 'basic'
-                        ? 'bg-[#46ec13]/15 text-[#46ec13]'
-                        : 'bg-amber-400/15 text-amber-400'
-                    )}
-                  >
-                    {v.tier === 'basic' ? 'Basic' : 'Premium'}
-                  </span>
-                </div>
-                <div className="flex justify-end">
-                  <span
-                    role="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.info(`试听：${v.name}`);
-                    }}
-                    className="w-9 h-9 rounded-full flex items-center justify-center bg-[#46ec13] text-[#060a07]"
-                  >
-                    <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {voicesLoading ? (
+          <div className="flex items-center gap-2 text-sm text-white/55 py-6">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            正在加载音色列表…
+          </div>
+        ) : visibleVoices.length === 0 ? (
+          <div className="text-sm text-white/55 py-6">
+            当前等级暂无可用音色
+            {tier === 'premium'
+              ? '，Premium 需配置 Azure Speech Services 等账号。'
+              : '。'}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            {visibleVoices.map((v) => {
+              const active = voiceMode === 'builtin' && voiceId === v.id;
+              const previewing = previewBusy === v.id;
+              return (
+                <button
+                  type="button"
+                  key={v.id}
+                  onClick={() => {
+                    setVoiceMode('builtin');
+                    setVoiceId(v.id);
+                  }}
+                  className={cn(
+                    'text-left rounded-xl border p-5 transition relative h-[120px] flex flex-col justify-between',
+                    active
+                      ? 'border-[#46ec13] bg-[#46ec13]/[0.08]'
+                      : 'border-white/10 bg-white/[0.02] hover:border-white/25'
+                  )}
+                >
+                  {active ? (
+                    <span className="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-[#46ec13] bg-[#46ec13]/20 flex items-center justify-center">
+                      <span className="w-2 h-2 rounded-full bg-[#46ec13]" />
+                    </span>
+                  ) : null}
+                  <div>
+                    <div className="text-base font-semibold truncate" title={v.id}>
+                      {v.display_name}
+                    </div>
+                    <div className="text-[11px] text-white/45 mt-0.5">
+                      {v.locale} · {v.gender}
+                    </div>
+                    <span
+                      className={cn(
+                        'inline-block mt-2 text-[11px] px-2 py-0.5 rounded',
+                        v.tier === 'basic'
+                          ? 'bg-[#46ec13]/15 text-[#46ec13]'
+                          : 'bg-amber-400/15 text-amber-400'
+                      )}
+                    >
+                      {v.tier === 'basic' ? 'Basic' : 'Premium'}
+                    </span>
+                  </div>
+                  <div className="flex justify-end">
+                    <span
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        previewVoice(v);
+                      }}
+                      className={cn(
+                        'w-9 h-9 rounded-full flex items-center justify-center bg-[#46ec13] text-[#060a07]',
+                        previewing && 'opacity-60'
+                      )}
+                    >
+                      {previewing ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                      )}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <label className="inline-flex items-center gap-2 text-sm text-white/50 cursor-not-allowed">
           <input
@@ -518,19 +629,31 @@ export default function DubbingPage() {
                       </td>
                       <td className="px-3 py-5">
                         {hasNarration ? (
-                          <button
-                            type="button"
-                            onClick={() => genOne(row.id)}
-                            disabled={st === 'generating'}
-                            className="w-8 h-8 rounded-md flex items-center justify-center text-white/65 hover:text-[#46ec13] hover:bg-white/5 disabled:opacity-50"
-                            title={st === 'ready' ? '重新生成' : '生成音频'}
-                          >
-                            {st === 'generating' ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <RefreshCcw className="w-4 h-4" />
-                            )}
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => genOne(row.id)}
+                              disabled={st === 'generating'}
+                              className="w-8 h-8 rounded-md flex items-center justify-center text-white/65 hover:text-[#46ec13] hover:bg-white/5 disabled:opacity-50"
+                              title={st === 'ready' ? '重新生成' : '生成音频'}
+                            >
+                              {st === 'generating' ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <RefreshCcw className="w-4 h-4" />
+                              )}
+                            </button>
+                            {st === 'ready' && audioUrls[row.id] ? (
+                              <button
+                                type="button"
+                                onClick={() => playRowAudio(row.id)}
+                                className="w-8 h-8 rounded-md flex items-center justify-center text-[#46ec13] hover:bg-white/5"
+                                title="播放音频"
+                              >
+                                <Play className="w-4 h-4" fill="currentColor" />
+                              </button>
+                            ) : null}
+                          </div>
                         ) : (
                           <span className="text-xs text-white/35">原片</span>
                         )}
@@ -664,6 +787,9 @@ function AudioStatusIcon({
   }
   if (status === 'generating') {
     return <Loader2 className="w-4 h-4 text-white/60 animate-spin" />;
+  }
+  if (status === 'error') {
+    return <AlertTriangle className="w-4 h-4 text-red-400" />;
   }
   return <AlertTriangle className="w-4 h-4 text-amber-400" />;
 }

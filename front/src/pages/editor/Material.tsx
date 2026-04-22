@@ -68,7 +68,7 @@ export default function MaterialPage() {
 
   if (!id || !project) {
     return (
-      <div className="container-page py-20 text-center text-white/60">
+      <div className="container-workspace py-20 text-center text-white/60">
         项目不存在或已被删除。
         <Button className="ml-3" onClick={() => navigate('/projects')}>
           返回项目列表
@@ -189,7 +189,7 @@ export default function MaterialPage() {
   };
 
   return (
-    <div className="container-page py-8 pb-28 flex-1 flex flex-col">
+    <div className="container-workspace py-8 pb-28 flex-1 flex flex-col">
       <header className="mb-6">
         <h2 className="text-2xl font-bold">
           项目名称：<span className="text-[#46ec13]">{project.name}</span>

@@ -53,7 +53,7 @@ export default function AnalysisPage() {
 
   if (!id || !project) {
     return (
-      <div className="container-page py-20 text-center text-white/60">
+      <div className="container-workspace py-20 text-center text-white/60">
         项目不存在。
       </div>
     );
@@ -116,7 +116,7 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="container-page py-8">
+    <div className="container-workspace py-8">
       <header className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">剪辑脚本编辑</h1>

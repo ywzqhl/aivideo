@@ -181,7 +181,7 @@ export default function DubbingPage() {
   const hasVideo = !!project.videoUrl;
 
   return (
-    <div className="container-page py-8 space-y-6">
+    <div className="container-workspace py-8 space-y-6">
       <header className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">配音制作</h1>

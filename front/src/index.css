@@ -212,3 +212,42 @@ input[type='range']::-moz-range-thumb {
     padding-right: 4rem;
   }
 }
+
+.dubbing-orange-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.dubbing-orange-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ff7a3d;
+  border: 2px solid #ffb38a;
+  box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.25);
+  cursor: pointer;
+  margin-top: 0;
+}
+
+.dubbing-orange-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ff7a3d;
+  border: 2px solid #ffb38a;
+  box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.25);
+  cursor: pointer;
+}
+
+.dubbing-orange-slider::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 6px;
+}
+
+.dubbing-orange-slider::-moz-range-track {
+  background: transparent;
+  height: 6px;
+}

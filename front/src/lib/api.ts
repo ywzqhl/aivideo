@@ -41,6 +41,50 @@ export type UploadResponse = {
   kind: 'video' | 'subtitle';
 };
 
+export type HighlightScriptRequest = {
+  video_path: string;
+  mode?: string;
+  target_duration_seconds?: number;
+  movie_title?: string;
+  highlight_profile?: string;
+  subtitle_path?: string;
+  narration_text?: string;
+  narration_audio_path?: string;
+  prefer_raw_audio?: boolean;
+  visual_mode?: string;
+  regenerate_subtitle?: boolean;
+  subtitle_backend?: string;
+};
+
+export type ScriptBinding = {
+  script_path: string;
+  video_path: string;
+  subtitle_path?: string;
+  label?: string;
+};
+
+export type TaskLogItem = {
+  task_id: string;
+  status: string;
+  message?: string;
+  updated_at?: string;
+};
+
+export type WorkspaceInfoResponse = {
+  project_root: string;
+  workspace_root: string;
+  config_file: string;
+  project_version: string;
+  layout: Record<string, string>;
+  task_root: string;
+};
+
+export type RuntimeConfigResponse = {
+  API_BASE_URL: string;
+  project_name: string;
+  project_version: string;
+};
+
 export type MovieStoryRequest = {
   video_path: string;
   subtitle_path?: string;
@@ -145,6 +189,78 @@ export async function createVideoJob(params: VideoGenerationParams): Promise<Job
     method: 'POST',
     body: JSON.stringify({ params }),
   });
+}
+
+export async function createHighlightScriptJob(
+  request: HighlightScriptRequest
+): Promise<JobAcceptedResponse> {
+  return requestJson<JobAcceptedResponse>('/api/v1/jobs/highlight-script', {
+    method: 'POST',
+    body: JSON.stringify({
+      request: {
+        video_path: request.video_path,
+        mode: request.mode || 'highlight_recut',
+        target_duration_seconds: request.target_duration_seconds ?? 480,
+        movie_title: request.movie_title || '',
+        highlight_profile: request.highlight_profile || 'auto',
+        subtitle_path: request.subtitle_path || '',
+        narration_text: request.narration_text || '',
+        narration_audio_path: request.narration_audio_path || '',
+        prefer_raw_audio: request.prefer_raw_audio ?? true,
+        visual_mode: request.visual_mode || 'auto',
+        regenerate_subtitle: request.regenerate_subtitle ?? false,
+        subtitle_backend: request.subtitle_backend || '',
+      },
+    }),
+  });
+}
+
+export async function getScriptBindings(): Promise<ScriptBinding[]> {
+  const payload = await requestJson<{ bindings: ScriptBinding[] }>(
+    '/api/v1/workbench/state/script-bindings',
+    { method: 'GET' }
+  );
+  return Array.isArray(payload?.bindings) ? payload.bindings : [];
+}
+
+export async function saveScriptBindings(bindings: ScriptBinding[]): Promise<string> {
+  const payload = await requestJson<{ message: string }>(
+    '/api/v1/workbench/state/script-bindings',
+    { method: 'PUT', body: JSON.stringify({ bindings }) }
+  );
+  return payload?.message || '';
+}
+
+export async function getTaskLogs(): Promise<TaskLogItem[]> {
+  const payload = await requestJson<{ items: TaskLogItem[] }>(
+    '/api/v1/workbench/task-logs',
+    { method: 'GET' }
+  );
+  return Array.isArray(payload?.items) ? payload.items : [];
+}
+
+export async function postRepairAction(title: string): Promise<string> {
+  const payload = await requestJson<{ message: string }>(
+    '/api/v1/workbench/actions/repair',
+    { method: 'POST', body: JSON.stringify({ title }) }
+  );
+  return payload?.message || '';
+}
+
+export async function postTimelineFix(trackName: string): Promise<string> {
+  const payload = await requestJson<{ message: string }>(
+    '/api/v1/workbench/actions/timeline-fix',
+    { method: 'POST', body: JSON.stringify({ track_name: trackName }) }
+  );
+  return payload?.message || '';
+}
+
+export async function getWorkspaceInfo(): Promise<WorkspaceInfoResponse> {
+  return requestJson<WorkspaceInfoResponse>('/api/v1/system/workspace', { method: 'GET' });
+}
+
+export async function getRuntimeConfig(): Promise<RuntimeConfigResponse> {
+  return requestJson<RuntimeConfigResponse>('/api/v1/system/config', { method: 'GET' });
 }
 
 export async function getJobStatus(taskId: string): Promise<JobStatusResponse> {

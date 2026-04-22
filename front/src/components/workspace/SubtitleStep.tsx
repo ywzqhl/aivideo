@@ -231,12 +231,12 @@ export default function SubtitleStep({
   // 字幕编辑状态
   return (
     <div className="h-full flex flex-col">
-      {/* 主内容区：左视频信息 + 右字幕列表，等高各自滚动 */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden min-h-0">
+      {/* 主内容区：左视频信息(1) + 右字幕列表(2)，等高各自滚动 */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_2fr] overflow-hidden min-h-0">
         {/* 左侧：视频预览 + 元数据 */}
         <div className="md:border-r border-white/[0.06] overflow-y-auto">
           <div className="p-5 space-y-5">
-            <div className="relative aspect-video rounded-2xl bg-black flex flex-col items-center justify-center p-6 overflow-hidden">
+            <div className="relative aspect-video w-full rounded-2xl bg-black flex items-center justify-center overflow-hidden">
               {videoUrl ? (
                 <>
                   <video
@@ -245,7 +245,7 @@ export default function SubtitleStep({
                     controls
                     onLoadedMetadata={onLoadedMetadata}
                     onTimeUpdate={onTimeUpdate}
-                    className="max-w-full max-h-full rounded-lg"
+                    className="absolute inset-0 w-full h-full object-contain"
                   />
                   <button className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/70 hover:text-white">
                     <Maximize2 className="w-4 h-4" />
@@ -374,11 +374,11 @@ export default function SubtitleStep({
               </div>
             ) : (
               subtitles.map((sub) => (
-                <div key={sub.id} className="group flex items-center gap-3">
+                <div key={sub.id} className="group flex items-center gap-2">
                   <span className="shrink-0 px-3 py-1.5 rounded-full bg-[#46ec13]/12 border border-[#46ec13]/30 text-[#46ec13] text-xs font-medium font-mono whitespace-nowrap">
                     {formatTimeDisplay(sub.start)} · {formatTimeDisplay(sub.end)}
                   </span>
-                  <div className="relative flex-1 min-w-0">
+                  <div className="flex-1 min-w-0">
                     {editingId === sub.id ? (
                       <input
                         type="text"
@@ -390,29 +390,34 @@ export default function SubtitleStep({
                           if (e.key === 'Escape') setEditingId(null);
                         }}
                         autoFocus
-                        className="w-full h-11 rounded-xl bg-white/[0.04] border border-[#46ec13]/40 pl-4 pr-12 text-sm text-white outline-none focus:border-[#46ec13]"
+                        className="w-full h-12 rounded-xl bg-white/[0.04] border border-[#46ec13]/40 px-4 text-sm text-white outline-none focus:border-[#46ec13]"
                       />
                     ) : (
-                      <button
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleEditStart(sub)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleEditStart(sub);
+                          }
+                        }}
                         title={sub.text}
-                        className="w-full h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[#46ec13]/30 pl-4 pr-12 text-sm text-slate-200 transition overflow-x-auto whitespace-nowrap text-left [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded"
+                        className="subtitle-row-scroll w-full h-12 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[#46ec13]/30 px-4 pt-3 text-sm text-slate-200 transition cursor-text"
                       >
                         {sub.text}
-                      </button>
+                      </div>
                     )}
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleDelete(sub.id);
-                      }}
-                      title="删除此条字幕"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-slate-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(sub.id)}
+                    title="删除此条字幕"
+                    className="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border border-white/[0.06] text-slate-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 opacity-0 group-hover:opacity-100 transition"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))
             )}

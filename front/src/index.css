@@ -251,3 +251,26 @@ input[type='range']::-moz-range-thumb {
   background: transparent;
   height: 6px;
 }
+
+/* 字幕行：单行水平滚动，常驻绿色细滚动条 */
+.subtitle-row-scroll {
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(70, 236, 19, 0.55) rgba(255, 255, 255, 0.05);
+}
+.subtitle-row-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.subtitle-row-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+}
+.subtitle-row-scroll::-webkit-scrollbar-thumb {
+  background: rgba(70, 236, 19, 0.55);
+  border-radius: 3px;
+}
+.subtitle-row-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(70, 236, 19, 0.8);
+}

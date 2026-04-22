@@ -240,7 +240,12 @@ export default function MaterialPage() {
       </div>
 
       {/* Phase content - card wrapper */}
-      <div className="flex-1 min-h-[640px] rounded-2xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden flex flex-col">
+      <div
+        className={cn(
+          'rounded-2xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden flex flex-col',
+          phase === 'subtitle' ? 'h-[720px]' : 'flex-1 min-h-[640px]'
+        )}
+      >
         {phase === 'upload' && (
           <VideoUploadStep
             uploadedFile={uploadedFile}

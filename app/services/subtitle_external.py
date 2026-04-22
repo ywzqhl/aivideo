@@ -29,8 +29,8 @@ _BACKEND_ALIASES = {
 }
 
 _BACKEND_COMMAND_KEYS = {
-    "videocaptioner_shell": ("videocaptioner_command", "NARRATO_VIDEOCAPTIONER_COMMAND"),
-    "videolingo_shell": ("videolingo_command", "NARRATO_VIDEOLINGO_COMMAND"),
+    "videocaptioner_shell": ("videocaptioner_command", "AIVIDEO_VIDEOCAPTIONER_COMMAND"),
+    "videolingo_shell": ("videolingo_command", "AIVIDEO_VIDEOLINGO_COMMAND"),
 }
 
 
@@ -94,7 +94,7 @@ def _find_repo_candidate(name: str) -> str:
     root_dir = _config_root_dir()
     raw_candidates = [
         str(config.whisper.get(f"{key_base}_repo_dir", "") or "").strip(),
-        str(os.getenv(f"NARRATO_{key_base.upper()}_REPO_DIR") or "").strip(),
+        str(os.getenv(f"AIVIDEO_{key_base.upper()}_REPO_DIR") or "").strip(),
         workspace.vendor_dir(name, root_dir=root_dir),
         os.path.join(os.path.dirname(root_dir), name),
         os.path.join(os.path.dirname(root_dir), name.replace("Captioner", "captioner")),

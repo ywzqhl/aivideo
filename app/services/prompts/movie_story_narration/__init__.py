@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-@Project: NarratoAI
+@Project: AIVideo
 @File   : __init__.py
 @Description: 影视剧情分段与解说提示词模块
 """

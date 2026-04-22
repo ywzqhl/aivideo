@@ -2,19 +2,17 @@
 
 > Updated on 2026-04-12.
 > Canonical rule: the repository keeps source code and static assets only. Generated videos, subtitles, scripts, caches, runtime files, and task outputs must go to the external workspace.
-> The workspace root can live on any drive and can be set by `app.workspace_root`, `NARRATO_WORKSPACE_ROOT`, or the `--workspace-root` flag on `tools/clean_workspace.py` and `tools/migrate_workspace.py`.
+> The workspace root can live on any drive and can be set by `app.workspace_root`, `AIVIDEO_WORKSPACE_ROOT`, or the `--workspace-root` flag on `tools/clean_workspace.py` and `tools/migrate_workspace.py`.
 
 Quick reference:
 
-- Source code: `app/`, `webui/`, `tools/`, `vendor/`, `tests/`, static files under `resource/`
-- UI service layer: `webui/services/` keeps Streamlit-side orchestration helpers out of page layout files
-- Script persistence helpers: `webui/services/script_persistence.py` centralizes script load/save behavior outside page files
-- Movie story script helpers: `webui/services/movie_story_script_support.py` keeps subtitle-first request/session helpers out of tool entrypoints
+- Source code: `app/`, `front/`, `tools/`, `vendor/`, `tests/`, static files under `resource/`
+- Frontend SPA: `front/` is a Vite + React app; the FastAPI server at `app/api/main.py` mounts `front/dist` as the root static route
 - Shared JSON repair helpers: `app/utils/json_utils.py`
 - Local API entrypoint: `local_api.py`, backed by `app/api/`
 - Local API default address: `http://127.0.0.1:18000` unless overridden by `app.local_api_base_url` or `app.local_api_host` / `app.local_api_port`
 - External workspace: `models/`, `videos/`, `subtitles/`, `scripts/`, `analysis/`, `fonts/`, `songs/`, `temp/`, `cache/`, `runtime/`, `state/`, `tasks/`
-- Local config files: prefer `workspace/state/config.toml` and `workspace/state/webui.toml`; legacy repo-root `config.toml` and `.streamlit/webui.toml` are compatibility fallbacks only
+- Local config files: prefer `workspace/state/config.toml`; legacy repo-root `config.toml` is a compatibility fallback only
 - Third-party runtime: `workspace/runtime/third_party/<tool-name>/`
 - Third-party cache: `workspace/cache/<tool-name>/`
 
@@ -38,9 +36,8 @@ Analysis placement:
 - `app/`
   - 业务服务、模型、配置与底层能力。
   - 后续新 UI 应尽量直接复用这里的服务层，而不是自己拼路径或维护缓存。
-- `webui/`
-  - 当前 Streamlit 界面层。
-  - 尽量保持薄，不再承担运行时目录规划这类基础设施职责。
+- `front/`
+  - Vite + React 前端工程，构建产物 `front/dist/` 由 FastAPI 以静态文件形式挂在 `/`。
 - `vendor/`
   - 第三方源码统一放这里。
   - 这里只放源码，不放 `.venv`、`AppData`、`work-dir`、ffmpeg 临时缓存等运行时垃圾。
@@ -51,7 +48,7 @@ Analysis placement:
   - 用户视频、字幕、脚本、字体、歌曲等工作数据不再建议放这里。
 - `storage/`
   - 旧版仓库内工作区。
-  - 现在默认工作区已改为项目同级目录 `../AIVideoGPT-workspace`，也可通过 `app.workspace_root` 或环境变量 `NARRATO_WORKSPACE_ROOT` 覆盖。
+  - 现在默认工作区已改为项目同级目录 `../AIVideoGPT-workspace`，也可通过 `app.workspace_root` 或环境变量 `AIVIDEO_WORKSPACE_ROOT` 覆盖。
 
 ## 工作区结构
 

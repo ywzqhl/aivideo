@@ -159,7 +159,7 @@ class VideoParams(BaseModel):
 
 class VideoClipParams(BaseModel):
     """
-    NarratoAI 数据模型
+    AIVideo 数据模型
     """
     video_clip_json: Optional[list] = Field(default=[], description="LLM 生成的视频剪辑脚本内容")
     video_clip_json_path: Optional[str] = Field(default="", description="LLM 生成的视频剪辑脚本路径")

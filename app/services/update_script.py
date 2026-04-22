@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 '''
-@Project: NarratoAI
+@Project: AIVideo
 @File   : update_script
 @Author : Viccy同学
 @Date   : 2025/5/6 下午11:00 

@@ -37,8 +37,7 @@ class LLMServiceManager:
         cls._text_providers[name.lower()] = provider_class
         logger.debug(f"注册文本模型提供商: {name}")
 
-    # _ensure_providers_registered() 方法已移除
-    # 现在使用显式注册机制（见 webui.py:main()）
+    # 使用显式注册机制：app.api.main.create_app() 启动时调用 register_all_providers()
     # 如需检查注册状态，使用 is_registered() 方法
 
 

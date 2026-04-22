@@ -52,21 +52,21 @@ FROM python:3.12-slim-bookworm
 ARG DEBIAN_FRONTEND=noninteractive
 
 # 设置工作目录
-WORKDIR /NarratoAI
+WORKDIR /AIVideo
 
 # 从构建阶段复制虚拟环境
 COPY --from=builder /opt/venv /opt/venv
 
 # 设置环境变量
 ENV PATH="/opt/venv/bin:$PATH" \
-    PYTHONPATH="/NarratoAI" \
+    PYTHONPATH="/AIVideo" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     APP_PORT=8866 \
-    NARRATO_WORKSPACE_ROOT=/NarratoAI-workspace
+    AIVIDEO_WORKSPACE_ROOT=/AIVideo-workspace
 
 # 一次性安装所有依赖、创建用户、配置系统，减少层级
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -89,27 +89,27 @@ RUN dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/dock
 COPY . .
 
 # 复制前端构建产物
-COPY --from=frontend-builder /front/dist /NarratoAI/front/dist
+COPY --from=frontend-builder /front/dist /AIVideo/front/dist
 
 # 创建目录、复制配置、设置权限
 RUN mkdir -p \
-    /NarratoAI-workspace/temp \
-    /NarratoAI-workspace/cache \
-    /NarratoAI-workspace/runtime \
-    /NarratoAI-workspace/state \
-    /NarratoAI-workspace/tasks \
-    /NarratoAI-workspace/models \
-    /NarratoAI-workspace/videos \
-    /NarratoAI-workspace/subtitles \
-    /NarratoAI-workspace/scripts \
-    /NarratoAI-workspace/fonts \
-    /NarratoAI-workspace/songs \
-    /NarratoAI-workspace/analysis \
-    /NarratoAI-workspace/analysis/json \
-    /NarratoAI-workspace/analysis/narration_scripts \
-    /NarratoAI-workspace/analysis/drama_analysis && \
+    /AIVideo-workspace/temp \
+    /AIVideo-workspace/cache \
+    /AIVideo-workspace/runtime \
+    /AIVideo-workspace/state \
+    /AIVideo-workspace/tasks \
+    /AIVideo-workspace/models \
+    /AIVideo-workspace/videos \
+    /AIVideo-workspace/subtitles \
+    /AIVideo-workspace/scripts \
+    /AIVideo-workspace/fonts \
+    /AIVideo-workspace/songs \
+    /AIVideo-workspace/analysis \
+    /AIVideo-workspace/analysis/json \
+    /AIVideo-workspace/analysis/narration_scripts \
+    /AIVideo-workspace/analysis/drama_analysis && \
     if [ ! -f config.toml ]; then cp config.example.toml config.toml; fi && \
-    chmod -R 755 /NarratoAI /NarratoAI-workspace
+    chmod -R 755 /AIVideo /AIVideo-workspace
 
 # 暴露端口
 EXPOSE 8866

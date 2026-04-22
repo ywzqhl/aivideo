@@ -16,8 +16,7 @@ from .exceptions import LLMServiceError
 # 导入新的提示词管理系统
 from app.services.prompts import PromptManager
 
-# 提供商注册由 webui.py:main() 显式调用（见 LLM 提供商注册机制重构）
-# 这样更可靠，错误也更容易调试
+# 提供商注册在 app.api.main.create_app() 启动时显式调用 register_all_providers()
 
 
 def _run_async_safely(coro_func, *args, **kwargs):

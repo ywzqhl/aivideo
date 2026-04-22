@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-#  NarratoAI - Linux 一键部署脚本
+#  AIVideo - Linux 一键部署脚本
 #  支持: Ubuntu/Debian, CentOS/RHEL/Fedora, macOS
 #  用法: chmod +x deploy-linux.sh && ./deploy-linux.sh
 # ============================================================
@@ -34,14 +34,14 @@ INSTALL_MODE="${1:-full}"   # full | run | stop | status
 # -------------------- 帮助信息 --------------------
 show_help() {
     echo ""
-    echo "NarratoAI - Linux 一键部署脚本"
+    echo "AIVideo - Linux 一键部署脚本"
     echo ""
     echo "用法: ./deploy-linux.sh [模式] [选项]"
     echo ""
     echo "模式:"
     echo "  full    完整安装（默认）: 系统依赖 + Python依赖 + 配置 + 启动"
     echo "  run     仅启动: 跳过安装步骤，直接启动应用"
-    echo "  stop    停止应用: 停止后台运行的 NarratoAI 服务"
+    echo "  stop    停止应用: 停止后台运行的 AIVideo 服务"
     echo "  status  查看状态: 查看应用运行状态"
     echo ""
     echo "环境变量:"
@@ -319,13 +319,13 @@ init_config() {
 generate_systemd() {
     step "生成 systemd 服务文件（可选）"
 
-    local service_file="$SCRIPT_DIR/narratoai.service"
+    local service_file="$SCRIPT_DIR/aivideo.service"
     local current_user
     current_user="$(whoami)"
 
     cat > "$service_file" << EOF
 [Unit]
-Description=NarratoAI - AI Video Narration Tool
+Description=AIVideo - AI Video Narration Tool
 After=network.target
 
 [Service]
@@ -348,26 +348,26 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
-    ok "systemd 服务文件已生成: narratoai.service"
+    ok "systemd 服务文件已生成: aivideo.service"
     info "安装为系统服务（后台自启动）:"
-    info "  sudo cp narratoai.service /etc/systemd/system/"
+    info "  sudo cp aivideo.service /etc/systemd/system/"
     info "  sudo systemctl daemon-reload"
-    info "  sudo systemctl enable --now narratoai"
+    info "  sudo systemctl enable --now aivideo"
 }
 
 # -------------------- 停止应用 --------------------
 stop_app() {
-    step "停止 NarratoAI"
+    step "停止 AIVideo"
 
     # 检查 systemd 服务
-    if systemctl is-active --quiet narratoai 2>/dev/null; then
-        sudo systemctl stop narratoai
+    if systemctl is-active --quiet aivideo 2>/dev/null; then
+        sudo systemctl stop aivideo
         ok "systemd 服务已停止"
         return
     fi
 
     # 检查 PID 文件
-    local pid_file="$SCRIPT_DIR/.narratoai.pid"
+    local pid_file="$SCRIPT_DIR/.aivideo.pid"
     if [ -f "$pid_file" ]; then
         local pid
         pid=$(cat "$pid_file")
@@ -388,23 +388,23 @@ stop_app() {
         echo "$pids" | xargs kill 2>/dev/null || true
         ok "应用已停止"
     else
-        info "未检测到运行中的 NarratoAI 进程"
+        info "未检测到运行中的 AIVideo 进程"
     fi
 }
 
 # -------------------- 查看状态 --------------------
 show_status() {
-    step "NarratoAI 状态"
+    step "AIVideo 状态"
 
     # 检查 systemd 服务
-    if systemctl is-active --quiet narratoai 2>/dev/null; then
+    if systemctl is-active --quiet aivideo 2>/dev/null; then
         ok "systemd 服务运行中"
-        systemctl status narratoai --no-pager 2>/dev/null || true
+        systemctl status aivideo --no-pager 2>/dev/null || true
         return
     fi
 
     # 检查 PID 文件
-    local pid_file="$SCRIPT_DIR/.narratoai.pid"
+    local pid_file="$SCRIPT_DIR/.aivideo.pid"
     if [ -f "$pid_file" ]; then
         local pid
         pid=$(cat "$pid_file")
@@ -424,13 +424,13 @@ show_status() {
         ok "应用运行中 (PID: $pids)"
         info "访问地址: http://127.0.0.1:${APP_PORT}"
     else
-        warn "NarratoAI 未运行"
+        warn "AIVideo 未运行"
     fi
 }
 
 # -------------------- 启动应用 --------------------
 start_app() {
-    step "启动 NarratoAI"
+    step "启动 AIVideo"
 
     source "$VENV_DIR/bin/activate"
     cd "$SCRIPT_DIR"
@@ -439,7 +439,7 @@ start_app() {
 
     echo ""
     echo -e "${GREEN}============================================${NC}"
-    echo -e "${GREEN}   NarratoAI 启动中...${NC}"
+    echo -e "${GREEN}   AIVideo 启动中...${NC}"
     echo -e "${GREEN}============================================${NC}"
     echo ""
     info "监听地址: ${APP_HOST}:${APP_PORT}"
@@ -466,7 +466,7 @@ start_app() {
 main() {
     echo ""
     echo -e "${CYAN}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║     NarratoAI - Linux 一键部署脚本         ║${NC}"
+    echo -e "${CYAN}║     AIVideo - Linux 一键部署脚本         ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════╝${NC}"
     echo ""
 
@@ -506,10 +506,10 @@ main() {
     echo "  ./deploy-linux.sh run"
     echo ""
     echo -e "${CYAN}使用 systemd 管理（后台运行 + 开机自启）:${NC}"
-    echo "  sudo cp narratoai.service /etc/systemd/system/"
+    echo "  sudo cp aivideo.service /etc/systemd/system/"
     echo "  sudo systemctl daemon-reload"
-    echo "  sudo systemctl enable --now narratoai"
-    echo "  sudo systemctl status narratoai"
+    echo "  sudo systemctl enable --now aivideo"
+    echo "  sudo systemctl status aivideo"
     echo ""
     echo -e "${CYAN}其他命令:${NC}"
     echo "  ./deploy-linux.sh stop       # 停止应用"

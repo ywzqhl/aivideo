@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 '''
-@Project: NarratoAI
+@Project: AIVideo
 @File   : 短剧解说
 @Author : 小林同学
 @Date   : 2025/5/9 上午12:36 

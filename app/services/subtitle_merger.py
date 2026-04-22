@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 '''
-@Project: NarratoAI
+@Project: AIVideo
 @File   : subtitle_merger
 @Author : viccy
 @Date   : 2025/5/6 下午4:00 

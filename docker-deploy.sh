@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# NarratoAI Docker 一键部署脚本
+# AIVideo Docker 一键部署脚本
 
 set -e
 
@@ -34,7 +34,7 @@ docker_compose() {
 # 显示帮助信息
 show_help() {
     cat << EOF
-NarratoAI Docker 一键部署脚本
+AIVideo Docker 一键部署脚本
 
 使用方法:
     $0 [选项]
@@ -122,7 +122,7 @@ build_image() {
 
 # 启动服务
 start_services() {
-    log_info "启动 NarratoAI 服务..."
+    log_info "启动 AIVideo 服务..."
 
     docker_compose down 2>/dev/null || true
     docker_compose up -d
@@ -152,7 +152,7 @@ wait_for_service() {
 # 显示部署信息
 show_deployment_info() {
     echo
-    log_info "NarratoAI 部署完成！"
+    log_info "AIVideo 部署完成！"
     echo "访问地址: http://localhost:8866"
     echo "工作区目录: ${WORKSPACE_ROOT:-../AIVideoGPT-workspace}"
     echo
@@ -191,13 +191,13 @@ main() {
     done
 
     # 执行部署流程
-    log_info "开始 NarratoAI Docker 部署..."
+    log_info "开始 AIVideo Docker 部署..."
 
     check_requirements
     check_config
     setup_workspace
 
-    if [ "$FORCE_BUILD" = "true" ] || ! docker images | grep -q "narratoai"; then
+    if [ "$FORCE_BUILD" = "true" ] || ! docker images | grep -q "aivideo"; then
         build_image
     fi
 

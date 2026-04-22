@@ -3,11 +3,11 @@ chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
 :: ============================================================
-::  NarratoAI - Windows Docker 一键部署脚本
+::  AIVideo - Windows Docker 一键部署脚本
 ::  用法: 双击运行 或 在命令行执行 deploy-windows-docker.bat
 :: ============================================================
 
-title NarratoAI Docker 部署
+title AIVideo Docker 部署
 
 :: -------------------- 颜色设置 --------------------
 :: Windows 10+ 支持 ANSI 颜色
@@ -27,7 +27,7 @@ if "%INSTALL_MODE%"=="" set "INSTALL_MODE=full"
 :: -------------------- 入口 --------------------
 echo.
 echo %CYAN%========================================%NC%
-echo %CYAN%  NarratoAI - Windows Docker 一键部署   %NC%
+echo %CYAN%  AIVideo - Windows Docker 一键部署   %NC%
 echo %CYAN%========================================%NC%
 echo.
 
@@ -46,7 +46,7 @@ goto :main
 :: -------------------- 帮助信息 --------------------
 :show_help
 echo.
-echo NarratoAI - Windows Docker 一键部署脚本
+echo AIVideo - Windows Docker 一键部署脚本
 echo.
 echo 用法: deploy-windows-docker.bat [模式]
 echo.
@@ -202,7 +202,7 @@ goto :eof
 
 :: -------------------- 启动服务 --------------------
 :start_services
-echo %GREEN%[信息]%NC% 启动 NarratoAI 服务...
+echo %GREEN%[信息]%NC% 启动 AIVideo 服务...
 
 cd /d "%SCRIPT_DIR%"
 docker compose down >nul 2>&1
@@ -251,7 +251,7 @@ goto :wait_loop
 :show_deploy_info
 echo.
 echo %GREEN%============================================%NC%
-echo %GREEN%    NarratoAI 部署完成！%NC%
+echo %GREEN%    AIVideo 部署完成！%NC%
 echo %GREEN%============================================%NC%
 echo.
 echo   访问地址: http://localhost:%APP_PORT%
@@ -279,7 +279,7 @@ goto :eof
 
 :: -------------------- 停止应用 --------------------
 :stop_app
-echo %GREEN%[信息]%NC% 停止 NarratoAI 服务...
+echo %GREEN%[信息]%NC% 停止 AIVideo 服务...
 cd /d "%SCRIPT_DIR%"
 docker compose down
 if %errorlevel% equ 0 (
@@ -291,16 +291,16 @@ goto :eof
 
 :: -------------------- 查看状态 --------------------
 :show_status
-echo %GREEN%[信息]%NC% NarratoAI 服务状态:
+echo %GREEN%[信息]%NC% AIVideo 服务状态:
 echo.
 cd /d "%SCRIPT_DIR%"
 docker compose ps
 echo.
 
 :: 检查健康状态
-docker inspect --format="{{.State.Health.Status}}" narratoai 2>nul
+docker inspect --format="{{.State.Health.Status}}" aivideo 2>nul
 if %errorlevel% equ 0 (
-    for /f "tokens=*" %%i in ('docker inspect --format="{{.State.Health.Status}}" narratoai 2^>nul') do (
+    for /f "tokens=*" %%i in ('docker inspect --format="{{.State.Health.Status}}" aivideo 2^>nul') do (
         echo 健康状态: %%i
     )
 )
@@ -310,7 +310,7 @@ goto :eof
 
 :: -------------------- 查看日志 --------------------
 :show_logs
-echo %GREEN%[信息]%NC% 显示 NarratoAI 日志（按 Ctrl+C 退出）:
+echo %GREEN%[信息]%NC% 显示 AIVideo 日志（按 Ctrl+C 退出）:
 echo.
 cd /d "%SCRIPT_DIR%"
 docker compose logs -f --tail=100
@@ -318,7 +318,7 @@ goto :eof
 
 :: -------------------- 重启应用 --------------------
 :restart_app
-echo %GREEN%[信息]%NC% 重启 NarratoAI 服务...
+echo %GREEN%[信息]%NC% 重启 AIVideo 服务...
 cd /d "%SCRIPT_DIR%"
 docker compose restart
 if %errorlevel% equ 0 (
@@ -331,7 +331,7 @@ goto :eof
 
 :: -------------------- 重新构建 --------------------
 :rebuild_app
-echo %GREEN%[信息]%NC% 重新构建并部署 NarratoAI...
+echo %GREEN%[信息]%NC% 重新构建并部署 AIVideo...
 cd /d "%SCRIPT_DIR%"
 call :check_docker
 if %errorlevel% neq 0 goto :eof
@@ -352,7 +352,7 @@ goto :eof
 
 :: ==================== 主流程 ====================
 :main
-echo %GREEN%[信息]%NC% 开始 NarratoAI Docker 部署...
+echo %GREEN%[信息]%NC% 开始 AIVideo Docker 部署...
 echo.
 
 :: 步骤 1: 检查 Docker

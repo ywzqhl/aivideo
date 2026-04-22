@@ -1,5 +1,5 @@
 """
-NarratoAI 大模型服务模块
+AIVideo 大模型服务模块
 
 统一的大模型服务抽象层，支持多供应商切换和严格的输出格式验证
 包含视觉模型和文本生成模型的统一接口
@@ -21,8 +21,7 @@ from .base import BaseLLMProvider, VisionModelProvider, TextModelProvider
 from .validators import OutputValidator, ValidationError
 from .exceptions import LLMServiceError, ProviderNotFoundError, ConfigurationError
 
-# 提供商注册由 webui.py:main() 显式调用（见 LLM 提供商注册机制重构）
-# 这样更可靠，错误也更容易调试
+# 提供商注册在 app.api.main.create_app() 启动时显式调用 register_all_providers()
 
 __all__ = [
     'LLMServiceManager',

@@ -26,7 +26,7 @@ def _normalize_path(path: str) -> str:
 
 def _default_workspace_root() -> str:
     configured = (
-        str(os.getenv("NARRATO_WORKSPACE_ROOT") or "").strip()
+        str(os.getenv("AIVIDEO_WORKSPACE_ROOT") or "").strip()
         or str(os.getenv("WORKSPACE_ROOT") or "").strip()
     )
     if configured:
@@ -49,7 +49,7 @@ def _legacy_repo_config_file() -> str:
 
 
 def resolve_config_file(config_path: str = "") -> str:
-    raw_path = str(config_path or os.getenv("NARRATO_CONFIG_FILE", "") or "").strip()
+    raw_path = str(config_path or os.getenv("AIVIDEO_CONFIG_FILE", "") or "").strip()
     if raw_path:
         resolved = _normalize_path(raw_path)
         if not os.path.isabs(raw_path):
@@ -185,10 +185,10 @@ hostname = socket.gethostname()
 log_level = _cfg.get("log_level", "DEBUG")
 listen_host = _cfg.get("listen_host", "0.0.0.0")
 listen_port = _cfg.get("listen_port", 8080)
-project_name = _cfg.get("project_name", "NarratoAI")
+project_name = _cfg.get("project_name", "AIVideo")
 project_description = _cfg.get(
     "project_description",
-    "<a href='https://github.com/linyqh/NarratoAI'>https://github.com/linyqh/NarratoAI</a>",
+    "<a href='https://github.com/linyqh/AIVideo'>https://github.com/linyqh/AIVideo</a>",
 )
 # 从文件读取版本号，而不是从配置文件中获取
 project_version = get_version_from_file()

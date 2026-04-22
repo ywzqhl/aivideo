@@ -2,7 +2,7 @@
 
 ## 简介
 
-NarratoAI 现已支持阿里云百炼平台的云端 ASR 服务：
+AIVideo 现已支持阿里云百炼平台的云端 ASR 服务：
 - **Qwen3-ASR-Flash**: 短音频同步识别（最长 5 分钟，最大 10MB）
 - **Qwen3-ASR-Flash-Filetrans**: 长音频异步识别（最长 12 小时，最大 2GB）
 - **Fun-ASR**: 阿里通义语音识别大模型
@@ -45,9 +45,9 @@ bailian_model = "qwen3-asr-flash"  # 短音频快速识别
 
 ## 使用方式
 
-### WebUI 界面
+### 前端界面
 
-在 WebUI 的字幕设置中选择：
+在前端字幕设置中选择：
 - 字幕来源: "自动识别"
 - ASR 后端会自动使用配置的 backend
 

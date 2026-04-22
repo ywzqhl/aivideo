@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-@Project: NarratoAI
+@Project: AIVideo
 @File   : upload_validation.py
 @Author : AI Assistant
 @Date   : 2025/12/25

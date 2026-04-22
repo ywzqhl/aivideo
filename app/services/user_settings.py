@@ -11,7 +11,7 @@ from app.utils import utils
 
 
 SETTINGS_DIR_NAME = "user_settings"
-DEFAULT_PROFILE = os.environ.get("NARRATOAI_PROFILE", "default")
+DEFAULT_PROFILE = os.environ.get("AIVIDEO_PROFILE", "default")
 ALLOWED_APP_KEYS = {
     "vision_llm_provider",
     "vision_litellm_model_name",

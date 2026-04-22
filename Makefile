@@ -1,4 +1,4 @@
-# NarratoAI Docker Makefile
+# AIVideo Docker Makefile
 
 .PHONY: help build up down restart logs shell clean deploy
 
@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 
 # 变量定义
-SERVICE_NAME := narratoai
+SERVICE_NAME := aivideo
 
 # 颜色定义
 GREEN := \033[32m
@@ -15,7 +15,7 @@ BLUE := \033[34m
 RESET := \033[0m
 
 help: ## 显示帮助信息
-	@echo "$(GREEN)NarratoAI Docker 管理命令$(RESET)"
+	@echo "$(GREEN)AIVideo Docker 管理命令$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)可用命令:$(RESET)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(BLUE)%-15s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)

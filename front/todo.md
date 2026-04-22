@@ -3,7 +3,7 @@
 ## Design Guidelines
 
 ### Design References (Primary Inspiration)
-- **narratoai.cn**: Clean, modern, gradient-heavy design with dark theme
+- **aivideo.cn**: Clean, modern, gradient-heavy design with dark theme
 - **Style**: Modern Minimalism + Dark Mode + Gradient Accents + Glassmorphism
 
 ### Color Palette

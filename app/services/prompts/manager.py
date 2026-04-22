@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 """
-@Project: NarratoAI
+@Project: AIVideo
 @File   : manager.py
 @Author : viccy同学
 @Date   : 2025/1/7

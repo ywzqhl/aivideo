@@ -97,7 +97,7 @@ def _safe_load_visual_input(data: Any) -> Any:
 
 def parse_visual_analysis_results(results: Any) -> Dict[str, List[Dict]]:
     """
-    兼容旧 WebUI 的导入接口。
+    视觉分析结果解析入口。
     输出统一格式：
     {
         "segment_xxx": [

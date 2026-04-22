@@ -32,7 +32,6 @@ def _move_pairs(*, workspace_root: str = "") -> List[MovePair]:
         (project / "storage" / "tts_cache", Path(workspace.cache_dir("tts_cache", workspace_root=workspace_root))),
         (project / "storage" / "user_settings", Path(workspace.state_dir("user_settings", workspace_root=workspace_root))),
         (project / "config.toml", Path(workspace.state_dir(workspace_root=workspace_root)) / "config.toml"),
-        (project / ".streamlit" / "webui.toml", Path(workspace.state_dir(workspace_root=workspace_root)) / "webui.toml"),
         (project / "storage" / "json", Path(workspace.analysis_dir("json", workspace_root=workspace_root))),
         (project / "storage" / "drama_analysis", Path(workspace.analysis_dir("drama_analysis", workspace_root=workspace_root))),
         (project / "storage" / "narration_scripts", Path(workspace.analysis_dir("narration_scripts", workspace_root=workspace_root))),

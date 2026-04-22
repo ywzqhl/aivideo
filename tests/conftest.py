@@ -10,5 +10,4 @@ root_str = str(ROOT)
 if root_str not in sys.path:
     sys.path.insert(0, root_str)
 
-os.environ.setdefault("NARRATO_CONFIG_FILE", str(ROOT / "config.toml"))
-os.environ.setdefault("NARRATO_WEBUI_CONFIG_FILE", str(ROOT / "config.toml"))
+os.environ.setdefault("AIVIDEO_CONFIG_FILE", str(ROOT / "config.toml"))

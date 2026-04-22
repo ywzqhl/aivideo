@@ -13,8 +13,7 @@ from .manager import LLMServiceManager
 from .validators import OutputValidator
 from .exceptions import LLMServiceError
 
-# 提供商注册由 webui.py:main() 显式调用（见 LLM 提供商注册机制重构）
-# 这样更可靠，错误也更容易调试
+# 提供商注册在 app.api.main.create_app() 启动时显式调用 register_all_providers()
 
 
 class UnifiedLLMService:

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-cd /NarratoAI || exit 1
+cd /AIVideo || exit 1
 
-WORKSPACE_ROOT="${NARRATO_WORKSPACE_ROOT:-/NarratoAI-workspace}"
+WORKSPACE_ROOT="${AIVIDEO_WORKSPACE_ROOT:-/AIVideo-workspace}"
 APP_PORT="${APP_PORT:-8866}"
 
 log() {
@@ -20,8 +20,8 @@ workspace_path() {
 }
 
 install_runtime_dependencies() {
-  if [ "${NARRATOAI_INSTALL_AT_STARTUP:-0}" != "1" ]; then
-    log "跳过容器启动时依赖安装（镜像已内置依赖，可设置 NARRATOAI_INSTALL_AT_STARTUP=1 强制开启）"
+  if [ "${AIVIDEO_INSTALL_AT_STARTUP:-0}" != "1" ]; then
+    log "跳过容器启动时依赖安装（镜像已内置依赖，可设置 AIVIDEO_INSTALL_AT_STARTUP=1 强制开启）"
     return 0
   fi
 
@@ -117,7 +117,7 @@ check_requirements() {
 }
 
 start_api() {
-  log "启动 NarratoAI API + 前端静态资源..."
+  log "启动 AIVideo API + 前端静态资源..."
 
   if command -v netstat >/dev/null 2>&1; then
     if netstat -tuln | grep -q ":${APP_PORT} "; then
@@ -125,8 +125,8 @@ start_api() {
     fi
   fi
 
-  export NARRATO_API_HOST="0.0.0.0"
-  export NARRATO_API_PORT="${APP_PORT}"
+  export AIVIDEO_API_HOST="0.0.0.0"
+  export AIVIDEO_API_PORT="${APP_PORT}"
 
   exec uvicorn app.api.main:app \
     --host 0.0.0.0 \
@@ -135,7 +135,7 @@ start_api() {
     --no-access-log
 }
 
-log "NarratoAI Docker 容器启动中..."
+log "AIVideo Docker 容器启动中..."
 
 check_requirements
 

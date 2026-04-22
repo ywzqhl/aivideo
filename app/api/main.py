@@ -9,19 +9,22 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routers import auth, health, jobs, system, uploads, workbench_state
 from app.config import config
+from app.services.llm.providers import register_all_providers
 from app.utils import utils
 
 
 def create_app() -> FastAPI:
+    register_all_providers()
+
     app = FastAPI(
         title=f"{config.project_name} Local API",
         version=config.project_version,
-        description="Local-first API for the next-generation NarratoAI frontend.",
+        description="Local-first API for the next-generation AIVideo frontend.",
     )
 
-    allow_origins = [origin.strip() for origin in str(os.getenv("NARRATO_API_CORS_ORIGINS", "")).split(",") if origin.strip()]
+    allow_origins = [origin.strip() for origin in str(os.getenv("AIVIDEO_API_CORS_ORIGINS", "")).split(",") if origin.strip()]
     allow_origin_regex = os.getenv(
-        "NARRATO_API_CORS_ORIGIN_REGEX",
+        "AIVIDEO_API_CORS_ORIGIN_REGEX",
         r"https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     )
     app.add_middleware(
@@ -48,7 +51,7 @@ def create_app() -> FastAPI:
     # 前端运行时配置接口（前端同源部署时 API_BASE_URL 为空字符串使用相对路径）
     @app.get("/api/config")
     def runtime_config():
-        same_origin = os.getenv("NARRATO_API_SAME_ORIGIN", "1") == "1"
+        same_origin = os.getenv("AIVIDEO_API_SAME_ORIGIN", "1") == "1"
         if same_origin:
             api_base_url = ""
         else:
@@ -62,7 +65,7 @@ def create_app() -> FastAPI:
         }
 
     # 挂载前端构建产物；放在所有 API 路由之后，用 html=True 支持 SPA 路由兜底
-    _front_dist_env = os.getenv("NARRATO_FRONT_DIST")
+    _front_dist_env = os.getenv("AIVIDEO_FRONT_DIST")
     _front_dist_candidates = [
         Path(_front_dist_env) if _front_dist_env else None,
         Path(__file__).resolve().parents[2] / "front" / "dist",

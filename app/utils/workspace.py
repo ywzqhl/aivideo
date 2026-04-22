@@ -49,7 +49,7 @@ def _configured_workspace_root(*, root_dir: str = "", workspace_root: str = "") 
     project = project_root(root_dir=root_dir)
     configured = (
         str(workspace_root or "").strip()
-        or str(os.getenv("NARRATO_WORKSPACE_ROOT") or "").strip()
+        or str(os.getenv("AIVIDEO_WORKSPACE_ROOT") or "").strip()
         or str(config.app.get("workspace_root", "") or "").strip()
     )
     if configured:

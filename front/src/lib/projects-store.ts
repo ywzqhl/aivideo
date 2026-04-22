@@ -1,4 +1,4 @@
-// Local-only project store that mirrors narratoai.cn's project model.
+// Local-only project store that mirrors aivideo.cn's project model.
 // The existing Python backend in this repo exposes upload / job APIs but no
 // real projects CRUD, so we keep the UI self-contained via localStorage.
 

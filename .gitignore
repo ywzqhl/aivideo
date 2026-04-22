@@ -22,6 +22,13 @@ AppData/
 
 
 node_modules
+
+# 前端构建产物
+front/dist/
+
+# 本地测试视频（不应提交）
+/test.mp4
+
 # VuePress 默认临时文件目录
 /sites/docs/.vuepress/.temp
 # VuePress 默认缓存目录

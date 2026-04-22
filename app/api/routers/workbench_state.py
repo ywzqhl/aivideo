@@ -11,7 +11,7 @@ from app.schemas.workbench_state import (
 )
 from app.services.workbench_state_service import WorkbenchStateService
 
-router = APIRouter(prefix="/api/v1/workbench", tags=["workbench-state"])
+router = APIRouter(prefix="/workbench", tags=["workbench-state"])
 service = WorkbenchStateService()
 
 

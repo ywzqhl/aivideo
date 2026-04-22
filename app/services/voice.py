@@ -2115,8 +2115,8 @@ def indextts2_tts(text: str, voice_name: str, voice_file: str, speed: float = 1.
             # 确保关闭文件
             try:
                 files['prompt_audio'].close()
-            except:
-                pass
+            except Exception as close_err:
+                logger.debug(f"关闭 prompt_audio 失败: {close_err}")
 
         if attempt < 2:  # 不是最后一次尝试
             time.sleep(2)  # 等待2秒后重试
@@ -2124,8 +2124,8 @@ def indextts2_tts(text: str, voice_name: str, voice_file: str, speed: float = 1.
             if attempt < 2:
                 try:
                     files['prompt_audio'] = open(reference_audio_path, 'rb')
-                except:
-                    pass
+                except OSError as reopen_err:
+                    logger.warning(f"重新打开 {reference_audio_path} 失败: {reopen_err}")
 
     logger.error("IndexTTS2 TTS 生成失败，已达到最大重试次数")
     return None

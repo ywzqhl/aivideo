@@ -7,8 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import auth, health, jobs, system, uploads
-from app.api.route_registry import register_workbench_routes
+from app.api.routers import auth, health, jobs, system, uploads, workbench_state
 from app.config import config
 from app.utils import utils
 
@@ -39,9 +38,8 @@ def create_app() -> FastAPI:
     app.include_router(jobs, prefix="/api/v1")
     app.include_router(auth, prefix="/api/v1")
     app.include_router(uploads, prefix="/api/v1")
-    
-    # 注册 workbench 相关路由
-    register_workbench_routes(app)
+    app.include_router(workbench_state, prefix="/api/v1")
+
     
     # 挂载上传文件目录为静态文件服务
     upload_root = Path(utils.workspace_dir()) / "frontend_uploads"

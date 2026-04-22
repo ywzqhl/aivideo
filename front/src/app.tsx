@@ -3,7 +3,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
-import Workspace from './pages/Workspace';
 import AuthCallback from './pages/AuthCallback';
 import AuthError from './pages/AuthError';
 import LoginPage from './pages/auth/Login';
@@ -45,7 +44,7 @@ const AppRoutes = () => (
     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
     <Route path="/terms-of-service" element={<TermsOfServicePage />} />
 
-    <Route path="/workspace" element={<Workspace />} />
+    <Route path="/workspace" element={<Navigate to="/projects" replace />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/auth/error" element={<AuthError />} />
 

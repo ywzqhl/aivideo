@@ -422,8 +422,9 @@ def wrap_text(text, max_width, font="Arial", fontsize=60):
     # 创建ImageFont对象
     try:
         font_obj = ImageFont.truetype(font, fontsize)
-    except:
+    except (OSError, ValueError) as e:
         # 如果无法加载指定字体，使用默认字体
+        logger.warning(f"无法加载字体 {font} (size={fontsize}): {e}; 使用 PIL 默认字体")
         font_obj = ImageFont.load_default()
     
     def get_text_size(inner_text):

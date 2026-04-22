@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell title="登录工作台，开启更高效的创作协同" subtitle="一键同步脚本、素材与团队进度。AIVideoGPT 为你提供安全、可靠且充满灵感的创作体验。">
+    <AuthShell title="登录工作台，开启更高效的创作协同" subtitle="一键同步脚本、素材与团队进度。AIVideo 为你提供安全、可靠且充满灵感的创作体验。">
       <div className="flex items-center gap-2 mb-1">
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center"

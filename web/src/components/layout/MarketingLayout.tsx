@@ -137,7 +137,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
               <li><Link to="/cases" className="hover:text-white">使用案例</Link></li>
               <li><Link to="/pricing" className="hover:text-white">会员权益</Link></li>
               <li><a className="hover:text-white" href="#">API 文档</a></li>
-              <li><a className="hover:text-white" href="mailto:hello@aivideogpt.dev">联系我们</a></li>
+              <li><a className="hover:text-white" href="mailto:hello@aivideo.dev">联系我们</a></li>
             </ul>
           </div>
           <div>
@@ -150,7 +150,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="border-t border-white/5">
           <div className="container-page py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/40">
-            <span>© {new Date().getFullYear()} AIVideoGPT. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} AIVideo. All rights reserved.</span>
             <span>v1.0.0</span>
           </div>
         </div>

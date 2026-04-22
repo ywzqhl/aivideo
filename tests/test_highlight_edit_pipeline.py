@@ -75,7 +75,7 @@ def _resolve_test_video_path() -> str:
     if video_candidates:
         return video_candidates[0]
 
-    temp_dir = os.path.join(tempfile.gettempdir(), "aivideogpt_test_videos")
+    temp_dir = os.path.join(tempfile.gettempdir(), "aivideo_test_videos")
     os.makedirs(temp_dir, exist_ok=True)
     placeholder_path = os.path.join(temp_dir, "placeholder.mp4")
     if not os.path.exists(placeholder_path):

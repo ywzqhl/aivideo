@@ -155,7 +155,7 @@ export default function Landing() {
             AI 驱动的视频创作平台
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.08]">
-            <span className="text-white">AIVideoGPT: </span>
+            <span className="text-white">AIVideo: </span>
             <span className="brand-gradient-text">你的专属视频剪辑智能体</span>
           </h1>
           <p className="mt-6 text-base md:text-lg text-white/65 max-w-2xl mx-auto">
@@ -265,7 +265,7 @@ export default function Landing() {
       <section className="container-page py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold">适用于多种创作场景</h2>
-          <p className="mt-3 text-white/55">从个人创作者到企业团队，AIVideoGPT 都能胜任</p>
+          <p className="mt-3 text-white/55">从个人创作者到企业团队，AIVideo 都能胜任</p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {CASES.map((c) => (

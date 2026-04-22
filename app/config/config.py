@@ -36,7 +36,7 @@ def _default_workspace_root() -> str:
         return resolved
 
     project_parent = os.path.dirname(root_dir)
-    project_name = os.path.basename(root_dir.rstrip("\\/")) or "AIVideoGPT"
+    project_name = os.path.basename(root_dir.rstrip("\\/")) or "AIVideo"
     return os.path.join(project_parent, f"{project_name}-workspace")
 
 

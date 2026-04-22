@@ -58,7 +58,7 @@ def _configured_workspace_root(*, root_dir: str = "", workspace_root: str = "") 
             resolved = os.path.abspath(os.path.join(project, configured))
         return resolved
     project_parent = os.path.dirname(project)
-    project_name = os.path.basename(project.rstrip("\\/")) or "AIVideoGPT"
+    project_name = os.path.basename(project.rstrip("\\/")) or "AIVideo"
     return os.path.join(project_parent, f"{project_name}-workspace")
 
 

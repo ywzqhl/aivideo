@@ -69,8 +69,8 @@ function ProjectsInner() {
     seedSampleProjectsIfEmpty();
     reload();
     const onChange = () => reload();
-    window.addEventListener('aivideogpt:projects', onChange);
-    return () => window.removeEventListener('aivideogpt:projects', onChange);
+    window.addEventListener('aivideo:projects', onChange);
+    return () => window.removeEventListener('aivideo:projects', onChange);
   }, []);
 
   const filtered = useMemo(() => {

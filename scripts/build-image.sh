@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_NAME="${IMAGE_NAME:-aivideogpt:latest}"
+IMAGE_NAME="${IMAGE_NAME:-aivideo:latest}"
 
 build_with_image() {
   local base_image="$1"

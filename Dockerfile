@@ -1,11 +1,11 @@
 # ---------- 前端构建阶段 ----------
 FROM node:20-bookworm-slim AS frontend-builder
 
-WORKDIR /front
-COPY front/package.json front/package-lock.json ./
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
-COPY front/ ./
+COPY web/ ./
 RUN npm run build
 
 # ---------- Python 依赖构建阶段 ----------
@@ -89,7 +89,7 @@ RUN dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/dock
 COPY . .
 
 # 复制前端构建产物
-COPY --from=frontend-builder /front/dist /AIVideo/front/dist
+COPY --from=frontend-builder /web/dist /AIVideo/web/dist
 
 # 创建目录、复制配置、设置权限
 RUN mkdir -p \

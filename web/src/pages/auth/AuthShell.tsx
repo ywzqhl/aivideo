@@ -48,7 +48,7 @@ export function AuthShell({
           <Link to="/" className="mb-10 inline-flex">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-xs">
               <Sparkles className="w-3.5 h-3.5 text-[#46ec13]" />
-              AIVideoGPT · 视频创作智能体平台
+              AIVideo · 视频创作智能体平台
             </div>
           </Link>
           <h1 className="text-3xl lg:text-4xl font-extrabold leading-tight">{title}</h1>
@@ -96,7 +96,7 @@ export function AuthShell({
             <div className="flex items-center gap-3 mb-6">
               <BrandLogo size={32} showText={false} />
               <div>
-                <h2 className="text-lg font-semibold">AIVideoGPT</h2>
+                <h2 className="text-lg font-semibold">AIVideo</h2>
                 <p className="text-xs text-white/55">你的 AI 视频创作伙伴</p>
               </div>
             </div>

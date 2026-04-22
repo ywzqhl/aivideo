@@ -42,7 +42,7 @@ export default function Sidebar({ collapsed, setCollapsed, activePanel, onPanelC
           <Zap className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
-          <span className="ml-2 font-bold text-sm whitespace-nowrap">AIVideoGPT</span>
+          <span className="ml-2 font-bold text-sm whitespace-nowrap">AIVideo</span>
         )}
       </div>
 

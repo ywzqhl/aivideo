@@ -9,7 +9,7 @@ services:
       - "8866:8866"
     volumes:
       - type: bind
-        source: ${WORKSPACE_ROOT:-../AIVideoGPT-workspace}
+        source: ${WORKSPACE_ROOT:-../AIVideo-workspace}
         target: /AIVideo-workspace
       - ./config.toml:/AIVideo/config.toml
       - ./resource:/AIVideo/resource:ro

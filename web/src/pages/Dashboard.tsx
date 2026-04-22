@@ -40,8 +40,8 @@ function DashboardInner() {
       setActivities(listActivities());
     };
     load();
-    window.addEventListener('aivideogpt:projects', load);
-    return () => window.removeEventListener('aivideogpt:projects', load);
+    window.addEventListener('aivideo:projects', load);
+    return () => window.removeEventListener('aivideo:projects', load);
   }, []);
 
   const quickCreate = () => {

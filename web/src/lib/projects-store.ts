@@ -39,8 +39,8 @@ export type Project = {
   scriptItems?: ScriptItem[];
 };
 
-const STORAGE_KEY = 'aivideogpt_projects';
-const ACTIVITY_KEY = 'aivideogpt_activities';
+const STORAGE_KEY = 'aivideo_projects';
+const ACTIVITY_KEY = 'aivideo_activities';
 
 export type Activity = {
   id: string;
@@ -64,7 +64,7 @@ function readAll(): Project[] {
 function writeAll(items: Project[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    window.dispatchEvent(new Event('aivideogpt:projects'));
+    window.dispatchEvent(new Event('aivideo:projects'));
   } catch {
     /* ignore */
   }

@@ -1,5 +1,5 @@
 param(
-  [string]$ImageName = "aivideogpt:latest"
+  [string]$ImageName = "aivideo:latest"
 )
 
 function Build-WithImage {

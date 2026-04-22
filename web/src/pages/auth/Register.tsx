@@ -52,7 +52,7 @@ export default function RegisterPage() {
       subtitle="免费额度即刻到账，支持邮箱注册，30 秒内开始你的第一个视频项目。"
     >
       <h3 className="text-base font-semibold">注册账户</h3>
-      <p className="text-xs text-white/55 mt-1">填写信息创建 AIVideoGPT 账号</p>
+      <p className="text-xs text-white/55 mt-1">填写信息创建 AIVideo 账号</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">

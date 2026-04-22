@@ -1,4 +1,4 @@
-# AIVideoGPT Modern UI - Development Plan
+# AIVideo Modern UI - Development Plan
 
 ## Design Guidelines
 

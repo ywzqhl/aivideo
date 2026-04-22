@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const TOKEN_KEY = 'aivideogpt_token';
-const USER_KEY = 'aivideogpt_user';
+const TOKEN_KEY = 'aivideo_token';
+const USER_KEY = 'aivideo_user';
 
 export type AuthUser = {
   email: string;
@@ -32,7 +32,7 @@ export function setStoredAuth(token: string, user: AuthUser) {
   try {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
-    window.dispatchEvent(new Event('aivideogpt:auth'));
+    window.dispatchEvent(new Event('aivideo:auth'));
   } catch {
     /* ignore */
   }
@@ -42,7 +42,7 @@ export function clearStoredAuth() {
   try {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.dispatchEvent(new Event('aivideogpt:auth'));
+    window.dispatchEvent(new Event('aivideo:auth'));
   } catch {
     /* ignore */
   }
@@ -58,10 +58,10 @@ export function useAuth() {
       setToken(getStoredToken());
     };
     window.addEventListener('storage', sync);
-    window.addEventListener('aivideogpt:auth', sync);
+    window.addEventListener('aivideo:auth', sync);
     return () => {
       window.removeEventListener('storage', sync);
-      window.removeEventListener('aivideogpt:auth', sync);
+      window.removeEventListener('aivideo:auth', sync);
     };
   }, []);
 

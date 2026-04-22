@@ -28,7 +28,7 @@ PYTHON_CMD=""
 PIP_MIRROR="${PIP_MIRROR:-https://pypi.org/simple/}"
 APP_PORT="${APP_PORT:-8866}"
 APP_HOST="${APP_HOST:-0.0.0.0}"
-WORKSPACE_ROOT="${WORKSPACE_ROOT:-${SCRIPT_DIR}/../AIVideoGPT-workspace}"
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-${SCRIPT_DIR}/../AIVideo-workspace}"
 INSTALL_MODE="${1:-full}"   # full | run | stop | status
 
 # -------------------- 帮助信息 --------------------
@@ -47,7 +47,7 @@ show_help() {
     echo "环境变量:"
     echo "  APP_PORT=8866      应用端口（默认8866）"
     echo "  APP_HOST=0.0.0.0   监听地址（默认0.0.0.0）"
-    echo "  WORKSPACE_ROOT=DIR 工作区目录（默认 ../AIVideoGPT-workspace）"
+    echo "  WORKSPACE_ROOT=DIR 工作区目录（默认 ../AIVideo-workspace）"
     echo "  PIP_MIRROR=URL     pip镜像源（默认官方源）"
     echo ""
     echo "示例:"

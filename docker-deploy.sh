@@ -87,7 +87,7 @@ check_config() {
 }
 
 setup_workspace() {
-    local workspace_root="${WORKSPACE_ROOT:-../AIVideoGPT-workspace}"
+    local workspace_root="${WORKSPACE_ROOT:-../AIVideo-workspace}"
     log_info "准备 Docker 工作区: ${workspace_root}"
 
     mkdir -p \
@@ -154,7 +154,7 @@ show_deployment_info() {
     echo
     log_info "AIVideo 部署完成！"
     echo "访问地址: http://localhost:8866"
-    echo "工作区目录: ${WORKSPACE_ROOT:-../AIVideoGPT-workspace}"
+    echo "工作区目录: ${WORKSPACE_ROOT:-../AIVideo-workspace}"
     echo
     echo "常用命令:"
     echo "  查看日志: docker compose logs -f"

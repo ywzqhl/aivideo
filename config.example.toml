@@ -4,11 +4,11 @@
     local_api_host = "127.0.0.1"
     local_api_port = 18000
     local_api_base_url = ""
-    # Leave empty to use a sibling workspace directory: ../AIVideoGPT-workspace
+    # Leave empty to use a sibling workspace directory: ../AIVideo-workspace
     # Put generated files, caches, runtime data, task outputs, and local model weights there.
     # The runtime app config is now expected at workspace/state/config.toml by default.
     # Docker Compose can point the host workspace to any drive with WORKSPACE_ROOT.
-    # Example: workspace_root = "D:/AIVideoGPT-workspace"
+    # Example: workspace_root = "D:/AIVideo-workspace"
 
     # LLM API 超时配置（秒）
     llm_vision_timeout = 120  # 视觉模型基础超时时间

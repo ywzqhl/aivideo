@@ -65,12 +65,12 @@ def create_app() -> FastAPI:
         }
 
     # 挂载前端构建产物；放在所有 API 路由之后，用 html=True 支持 SPA 路由兜底
-    _front_dist_env = os.getenv("AIVIDEO_FRONT_DIST")
-    _front_dist_candidates = [
-        Path(_front_dist_env) if _front_dist_env else None,
-        Path(__file__).resolve().parents[2] / "front" / "dist",
+    _web_dist_env = os.getenv("AIVIDEO_WEB_DIST")
+    _web_dist_candidates = [
+        Path(_web_dist_env) if _web_dist_env else None,
+        Path(__file__).resolve().parents[2] / "web" / "dist",
     ]
-    for candidate in _front_dist_candidates:
+    for candidate in _web_dist_candidates:
         if candidate and candidate.is_dir():
             app.mount("/", StaticFiles(directory=str(candidate), html=True), name="frontend")
             break

@@ -32,8 +32,8 @@ export function ProjectEditorLayoutInner() {
     if (!id) return;
     const refresh = () => setProject(getProject(id));
     refresh();
-    window.addEventListener('aivideogpt:projects', refresh);
-    return () => window.removeEventListener('aivideogpt:projects', refresh);
+    window.addEventListener('aivideo:projects', refresh);
+    return () => window.removeEventListener('aivideo:projects', refresh);
   }, [id]);
 
   const tabBase = useMemo(() => `/projects/${id}`, [id]);

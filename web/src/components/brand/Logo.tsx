@@ -33,7 +33,7 @@ export function BrandLogo({ size = 28, className, showText = true }: Props) {
       </div>
       {showText ? (
         <span className="text-base font-bold tracking-tight text-white">
-          AIVideoGPT
+          AIVideo
         </span>
       ) : null}
     </div>

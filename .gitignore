@@ -23,7 +23,7 @@ AppData/
 node_modules
 
 # 前端构建产物
-front/dist/
+web/dist/
 
 # 本地测试视频（不应提交）
 /test.mp4

@@ -20,7 +20,7 @@ set "NC=[0m"
 :: -------------------- 全局变量 --------------------
 set "APP_PORT=8866"
 for %%I in ("%~dp0.") do set "SCRIPT_DIR=%%~fI"
-if "%WORKSPACE_ROOT%"=="" for %%I in ("%SCRIPT_DIR%\..\AIVideoGPT-workspace") do set "WORKSPACE_ROOT=%%~fI"
+if "%WORKSPACE_ROOT%"=="" for %%I in ("%SCRIPT_DIR%\..\AIVideo-workspace") do set "WORKSPACE_ROOT=%%~fI"
 set "INSTALL_MODE=%~1"
 if "%INSTALL_MODE%"=="" set "INSTALL_MODE=full"
 

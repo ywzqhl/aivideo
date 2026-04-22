@@ -6,8 +6,8 @@
 
 Quick reference:
 
-- Source code: `app/`, `front/`, `tools/`, `vendor/`, `tests/`, static files under `resource/`
-- Frontend SPA: `front/` is a Vite + React app; the FastAPI server at `app/api/main.py` mounts `front/dist` as the root static route
+- Source code: `app/`, `web/`, `tools/`, `vendor/`, `tests/`, static files under `resource/`
+- Frontend SPA: `web/` is a Vite + React app; the FastAPI server at `app/api/main.py` mounts `web/dist` as the root static route
 - Shared JSON repair helpers: `app/utils/json_utils.py`
 - Local API entrypoint: `local_api.py`, backed by `app/api/`
 - Local API default address: `http://127.0.0.1:18000` unless overridden by `app.local_api_base_url` or `app.local_api_host` / `app.local_api_port`
@@ -29,15 +29,15 @@ Analysis placement:
 - Recommended subfolders: `workspace/analysis/json/`, `workspace/analysis/narration_scripts/`, `workspace/analysis/drama_analysis/`.
 - `tools/migrate_workspace.py --apply` will also move legacy `json/`, `narration_scripts/`, and `drama_analysis/` folders into `analysis/`.
 
-`AIVideoGPT` 现在按“源码 / 第三方源码 / 工作区产物”三层来整理，后面重做 UI 时也建议继续沿用这个边界。
+`AIVideo` 现在按“源码 / 第三方源码 / 工作区产物”三层来整理，后面重做 UI 时也建议继续沿用这个边界。
 
 ## 目录职责
 
 - `app/`
   - 业务服务、模型、配置与底层能力。
   - 后续新 UI 应尽量直接复用这里的服务层，而不是自己拼路径或维护缓存。
-- `front/`
-  - Vite + React 前端工程，构建产物 `front/dist/` 由 FastAPI 以静态文件形式挂在 `/`。
+- `web/`
+  - Vite + React 前端工程，构建产物 `web/dist/` 由 FastAPI 以静态文件形式挂在 `/`。
 - `vendor/`
   - 第三方源码统一放这里。
   - 这里只放源码，不放 `.venv`、`AppData`、`work-dir`、ffmpeg 临时缓存等运行时垃圾。
@@ -48,41 +48,41 @@ Analysis placement:
   - 用户视频、字幕、脚本、字体、歌曲等工作数据不再建议放这里。
 - `storage/`
   - 旧版仓库内工作区。
-  - 现在默认工作区已改为项目同级目录 `../AIVideoGPT-workspace`，也可通过 `app.workspace_root` 或环境变量 `AIVIDEO_WORKSPACE_ROOT` 覆盖。
+  - 现在默认工作区已改为项目同级目录 `../AIVideo-workspace`，也可通过 `app.workspace_root` 或环境变量 `AIVIDEO_WORKSPACE_ROOT` 覆盖。
 
 ## 工作区结构
 
 默认工作区会拆成这些子目录：
 
-- `../AIVideoGPT-workspace/videos/`
+- `../AIVideo-workspace/videos/`
   - 输入视频与下载视频素材。
-- `../AIVideoGPT-workspace/subtitles/`
+- `../AIVideo-workspace/subtitles/`
   - 输入字幕和持久化字幕产物。
-- `../AIVideoGPT-workspace/scripts/`
+- `../AIVideo-workspace/scripts/`
   - 剧本、规划结果、审计脚本等产物。
-- `../AIVideoGPT-workspace/fonts/`
+- `../AIVideo-workspace/fonts/`
   - 本地字体资源。
-- `../AIVideoGPT-workspace/songs/`
+- `../AIVideo-workspace/songs/`
   - 本地 BGM 资源。
-- `../AIVideoGPT-workspace/temp/`
+- `../AIVideo-workspace/temp/`
   - 短期临时文件，可直接清理。
-- `../AIVideoGPT-workspace/cache/`
+- `../AIVideo-workspace/cache/`
   - 可重建缓存，例如 TTS 缓存、素材下载缓存。
-- `../AIVideoGPT-workspace/runtime/`
+- `../AIVideo-workspace/runtime/`
   - 运行时状态与第三方工具运行目录，例如 `VideoCaptioner` 的 `AppData`。
-- `../AIVideoGPT-workspace/state/`
+- `../AIVideo-workspace/state/`
   - 本地用户状态，例如 UI 配置快照。
-- `../AIVideoGPT-workspace/tasks/`
+- `../AIVideo-workspace/tasks/`
   - 任务输出与阶段产物，是否清理要按业务需要决定。
-- `../AIVideoGPT-workspace/models/`
+- `../AIVideo-workspace/models/`
   - 本地模型权重，例如 `faster-whisper-large-v2` / `faster-whisper-large-v3`。
 
 ## 当前整理约定
 
-- `VideoCaptioner` 的运行时目录不再塞进源码目录，统一走 `../AIVideoGPT-workspace/runtime/third_party/videocaptioner/`。
-- TTS 缓存改到 `../AIVideoGPT-workspace/cache/tts_cache/`。
-- 下载素材缓存改到 `../AIVideoGPT-workspace/cache/materials/`。
-- 用户设置改到 `../AIVideoGPT-workspace/state/user_settings/`。
+- `VideoCaptioner` 的运行时目录不再塞进源码目录，统一走 `../AIVideo-workspace/runtime/third_party/videocaptioner/`。
+- TTS 缓存改到 `../AIVideo-workspace/cache/tts_cache/`。
+- 下载素材缓存改到 `../AIVideo-workspace/cache/materials/`。
+- 用户设置改到 `../AIVideo-workspace/state/user_settings/`。
 - `videos / subtitles / scripts / fonts / songs` 默认都走项目外工作区。
 - 大模型权重也应放在 `workspace/models/`，不再放在 `app/models/` 里混着源码。
 - 根目录遗留的 `AppData/`、`MagicMock/`、`pytest-cache-files-*` 视为待清理脏目录。

@@ -104,7 +104,7 @@ def main() -> int:
     parser.add_argument(
         "--workspace-root",
         default="",
-        help="Override the workspace root for this run, for example D:/AIVideoGPT-workspace.",
+        help="Override the workspace root for this run, for example D:/AIVideo-workspace.",
     )
     args = parser.parse_args()
 

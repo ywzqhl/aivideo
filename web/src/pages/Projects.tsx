@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  ArrowUp,
   LayoutGrid,
   Plus,
   Search,
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import CreateProjectModal, { type InferenceMode } from '@/components/workspace/CreateProjectModal';
+import DeleteProgressModal from '@/components/workspace/DeleteProgressModal';
 import {
   createProject,
   deleteProject,
@@ -62,6 +64,7 @@ function ProjectsInner() {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
   const [view, setView] = useState<'card' | 'table'>('card');
   const [createOpen, setCreateOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
 
   const reload = () => setProjects(listProjects());
 
@@ -93,10 +96,17 @@ function ProjectsInner() {
     navigate(`/projects/${p.id}/material`);
   };
 
-  const handleDelete = (id: string) => {
-    if (!window.confirm('确定删除该项目？')) return;
-    deleteProject(id);
-    toast.success('项目已删除');
+  const handleDelete = (project: Project) => {
+    if (!window.confirm(`确定删除项目「${project.name}」？`)) return;
+    setPendingDelete(project);
+  };
+
+  const finalizeDelete = () => {
+    if (!pendingDelete) return;
+    const name = pendingDelete.name;
+    deleteProject(pendingDelete.id);
+    setPendingDelete(null);
+    toast.success(`项目「${name}」已删除`);
   };
 
   return (
@@ -187,8 +197,22 @@ function ProjectsInner() {
         </nav>
 
         {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 p-16 text-center text-white/50">
-            没有找到匹配的项目。
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.015] py-24 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/10 text-white/60">
+              <ArrowUp className="h-6 w-6" strokeWidth={1.5} />
+            </div>
+            <h3 className="mt-6 text-lg font-semibold text-white">暂无项目</h3>
+            <p className="mt-2 text-sm text-white/50">
+              {projects.length === 0 ? '创建你的第一个视频剪辑项目' : '没有找到匹配的项目'}
+            </p>
+            {projects.length === 0 ? (
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="mt-6 bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6 py-5 text-sm"
+              >
+                <Plus className="w-4 h-4 mr-1" /> 创建项目
+              </Button>
+            ) : null}
           </div>
         ) : view === 'card' ? (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -230,7 +254,7 @@ function ProjectsInner() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => handleDelete(p)}
                       className="text-white/40 hover:text-red-400"
                       title="删除"
                     >
@@ -294,7 +318,7 @@ function ProjectsInner() {
                       </Link>
                       <button
                         type="button"
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => handleDelete(p)}
                         className="text-white/50 hover:text-red-400"
                       >
                         <MoreVertical className="w-4 h-4 inline" /> 删除
@@ -312,6 +336,12 @@ function ProjectsInner() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreate={handleCreate}
+      />
+
+      <DeleteProgressModal
+        open={pendingDelete !== null}
+        projectName={pendingDelete?.name ?? ''}
+        onFinished={finalizeDelete}
       />
     </AppLayout>
   );

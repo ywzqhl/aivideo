@@ -85,6 +85,12 @@ export type RuntimeConfigResponse = {
   project_version: string;
 };
 
+export type SubtitleJobRequest = {
+  video_path: string;
+  backend?: string;
+  model?: string;
+};
+
 export type MovieStoryRequest = {
   video_path: string;
   subtitle_path?: string;
@@ -182,6 +188,27 @@ export async function createMovieStoryJob(request: MovieStoryRequest): Promise<J
       },
     }),
   });
+}
+
+export async function createSubtitleJob(
+  request: SubtitleJobRequest
+): Promise<JobAcceptedResponse> {
+  return requestJson<JobAcceptedResponse>('/api/v1/jobs/subtitle', {
+    method: 'POST',
+    body: JSON.stringify({
+      request: {
+        video_path: request.video_path,
+        backend: request.backend || '',
+        model: request.model || '',
+      },
+    }),
+  });
+}
+
+export function extractSubtitleArtifact(snapshot: JobStatusResponse): string {
+  const payload = snapshot.payload || {};
+  const result = (payload.result || {}) as Record<string, any>;
+  return String(result.subtitle_path || payload.subtitle_path || '') || '';
 }
 
 export async function createVideoJob(params: VideoGenerationParams): Promise<JobAcceptedResponse> {

@@ -56,6 +56,17 @@ class MovieStoryJobCreateRequest(BaseModel):
     task_id: str = Field(default="", description="Optional custom task id for local orchestration.")
 
 
+class SubtitleScriptRequest(BaseModel):
+    video_path: str
+    backend: str = ""
+    model: str = ""
+
+
+class SubtitleJobCreateRequest(BaseModel):
+    request: SubtitleScriptRequest
+    task_id: str = Field(default="", description="Optional custom task id for local orchestration.")
+
+
 class JobAcceptedResponse(BaseModel):
     task_id: str
     job_type: str

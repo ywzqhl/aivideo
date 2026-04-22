@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { CheckCircle2, RefreshCcw, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,17 @@ import {
   updateProject,
 } from '@/lib/projects-store';
 import { toast } from 'sonner';
-import type { SubtitleLine } from '@/lib/api';
+import {
+  createMovieStoryJob,
+  createSubtitleJob,
+  extractMovieStoryArtifacts,
+  extractSubtitleArtifact,
+  readSubtitleLines,
+  uploadSubtitle,
+  uploadVideo,
+  waitForJob,
+  type SubtitleLine,
+} from '@/lib/api';
 import VideoUploadStep from '@/components/workspace/VideoUploadStep';
 import SubtitleStep from '@/components/workspace/SubtitleStep';
 import ConfigStep, {
@@ -52,21 +62,24 @@ const defaultConfig: ConfigFormValue = {
   subtitleEnabled: true,
 };
 
-const mockSubtitles: SubtitleLine[] = [
-  { id: 1, start: '00:00:00.000', end: '00:00:21.500', text: '吃撑了，就躺在龙椅上晒太阳。晒呀，晒呀，直至饿了。直到饿了，就再接着吃面膜，吃大饼。' },
-  { id: 2, start: '00:00:22.900', end: '00:00:32.100', text: '知道了吧？这就是皇上！' },
-  { id: 3, start: '00:00:45.500', end: '00:01:04.700', text: '全村一开春就断粮了，男女老少天天饿得眼睛发绿呀。那时候咱就觉得做皇帝多好啊。' },
-  { id: 4, start: '00:01:04.700', end: '00:01:19.100', text: '后来真要做了皇上才明白，原来这把龙椅并没有想象中那么舒服。' },
-  { id: 5, start: '00:01:19.100', end: '00:01:35.000', text: '江山是锦绣，但也是沉重的铁甲，压得人喘不过气。' },
-];
-
-const mockScript: ScriptItem[] = [
-  { id: 's1', startTime: '00:00:00,000', endTime: '00:00:21,500', originalSubtitle: '吃撑了，就躺在龙椅上晒太阳…', narration: '一开场，这位皇帝就把"躺平"二字演绎到了极致——吃饱睡，睡饱吃，龙椅当床，面膜大饼轮着上。' },
-  { id: 's2', startTime: '00:00:22,900', endTime: '00:00:32,100', originalSubtitle: '知道了吧？这就是皇上！', narration: '别笑，这还真是九五之尊的日常。看着荒诞，却藏着一整个王朝的倦怠。' },
-  { id: 's3', startTime: '00:00:45,500', endTime: '00:01:04,700', originalSubtitle: '全村一开春就断粮了…', narration: '可镜头一转，百姓却在春荒里挨饿。民间的饥饿与宫里的慵懒，被一刀切开两个世界。' },
-  { id: 's4', startTime: '00:01:04,700', endTime: '00:01:19,100', originalSubtitle: '后来真要做了皇上才明白…', narration: '少年梦里想当皇帝，以为是天堂的通行证；真坐上去才知道，这把龙椅更像一副铁打的枷。' },
-  { id: 's5', startTime: '00:01:19,100', endTime: '00:01:35,000', originalSubtitle: '江山是锦绣，但也是沉重的铁甲…', narration: '锦绣江山在他肩上沉甸甸地合拢——原来最难扛的，不是敌人的刀，而是自己的那身龙袍。' },
-];
+function normalizeScriptItems(items: any[]): ScriptItem[] {
+  if (!Array.isArray(items)) return [];
+  return items.map((item, index) => {
+    const startTime = String(item?.timestamp?.split('-')?.[0] || item?.start || item?.startTime || '');
+    const endTime = String(item?.timestamp?.split('-')?.[1] || item?.end || item?.endTime || '');
+    const narration = String(item?.narration || item?.new_content || item?.content || item?.text || '');
+    const originalSubtitle = String(
+      item?.original_subtitle || item?.originalSubtitle || item?.subtitle_text || item?.original || ''
+    );
+    return {
+      id: String(item?.id || item?._id || `s${index + 1}`),
+      startTime: startTime || '00:00:00,000',
+      endTime: endTime || '00:00:00,000',
+      originalSubtitle,
+      narration,
+    };
+  });
+}
 
 export default function MaterialPage() {
   const { id } = useParams<{ id: string }>();
@@ -76,6 +89,9 @@ export default function MaterialPage() {
   const [phase, setPhase] = useState<Phase>('upload');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | undefined>(project?.videoUrl);
+  const [uploadedVideoPath, setUploadedVideoPath] = useState<string>('');
+  const [uploadedSubtitlePath, setUploadedSubtitlePath] = useState<string>('');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   const [subtitleMode, setSubtitleMode] = useState<'auto' | 'upload' | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -89,6 +105,8 @@ export default function MaterialPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewText, setPreviewText] = useState('');
   const [pendingScript, setPendingScript] = useState<ScriptItem[]>([]);
+
+  const uploadTokenRef = useRef(0);
 
   useEffect(() => {
     setVideoUrl(project?.videoUrl);
@@ -107,35 +125,110 @@ export default function MaterialPage() {
 
   const activeStepIdx = STEPS.findIndex((s) => (s.matches as Phase[]).includes(phase));
 
-  const onVideoPicked = (file: File | null) => {
+  const onVideoPicked = async (file: File | null) => {
     setUploadedFile(file);
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setVideoUrl(url);
-      updateProject(id, {
-        videoFileName: file.name,
-        videoUrl: url,
-        currentStep: 'upload',
-      });
-    } else {
+    setUploadedVideoPath('');
+    setUploadedSubtitlePath('');
+    setSubtitles([]);
+    setRecognitionDone(false);
+    setSubtitleMode(null);
+
+    if (!file) {
       setVideoUrl(undefined);
       updateProject(id, { videoFileName: undefined, videoUrl: undefined });
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setVideoUrl(url);
+    updateProject(id, {
+      videoFileName: file.name,
+      videoUrl: url,
+      currentStep: 'upload',
+    });
+
+    const token = ++uploadTokenRef.current;
+    setIsUploadingVideo(true);
+    try {
+      const resp = await uploadVideo(file);
+      if (token !== uploadTokenRef.current) return; // 用户切过文件
+      setUploadedVideoPath(resp.path);
+    } catch (err) {
+      if (token !== uploadTokenRef.current) return;
+      toast.error(
+        `视频上传到服务端失败：${err instanceof Error ? err.message : '未知错误'}`
+      );
+    } finally {
+      if (token === uploadTokenRef.current) setIsUploadingVideo(false);
     }
   };
 
   const onSubtitleStart = async () => {
+    if (!uploadedVideoPath) {
+      if (isUploadingVideo) {
+        toast.info('视频仍在上传至服务端，请稍候再试');
+      } else {
+        toast.error('视频尚未上传到服务端，请重新选择视频');
+      }
+      return;
+    }
     setSubtitleMode('auto');
     setIsRecognizing(true);
     try {
-      await new Promise((r) => setTimeout(r, 1400));
-      setSubtitles(mockSubtitles);
+      const job = await createSubtitleJob({ video_path: uploadedVideoPath });
+      const snapshot = await waitForJob(job.task_id, { intervalMs: 1500 });
+      const subtitlePath = extractSubtitleArtifact(snapshot);
+      if (!subtitlePath) {
+        throw new Error('后端未返回字幕文件路径');
+      }
+      const lines = await readSubtitleLines(subtitlePath);
+      setSubtitles(lines);
+      setUploadedSubtitlePath(subtitlePath);
       setRecognitionDone(true);
+      toast.success(`字幕识别完成，共 ${lines.length} 条`);
+    } catch (err) {
+      toast.error(
+        `字幕识别失败：${err instanceof Error ? err.message : '未知错误'}`
+      );
+      setSubtitleMode(null);
     } finally {
       setIsRecognizing(false);
     }
   };
 
+  const onSubtitleFileUploaded = async (
+    file: File,
+    parsed: SubtitleLine[]
+  ) => {
+    setSubtitles(parsed);
+    setRecognitionDone(true);
+    try {
+      const resp = await uploadSubtitle(file);
+      setUploadedSubtitlePath(resp.path);
+    } catch (err) {
+      toast.error(
+        `字幕文件上传到服务端失败：${err instanceof Error ? err.message : '未知错误'}`
+      );
+    }
+  };
+
+  const setStepStatus = (
+    key: string,
+    status: GenerationStep['status'],
+    hint?: string
+  ) => {
+    setProgressSteps((prev) =>
+      prev.map((s) =>
+        s.key === key ? { ...s, status, ...(hint ? { hint } : {}) } : s
+      )
+    );
+  };
+
   const generate = async () => {
+    if (!uploadedVideoPath) {
+      toast.error('视频尚未上传到服务端，请重新选择视频');
+      return;
+    }
     setGenerating(true);
     const stepsDef: GenerationStep[] = [
       { key: 'check', label: '校验视频与配置', status: 'running' },
@@ -144,30 +237,56 @@ export default function MaterialPage() {
     ];
     setProgressSteps(stepsDef);
     try {
-      await new Promise((r) => setTimeout(r, 700));
-      setProgressSteps((prev) =>
-        prev.map((s) =>
-          s.key === 'check' ? { ...s, status: 'done' } : s.key === 'llm' ? { ...s, status: 'running' } : s
-        )
-      );
-      await new Promise((r) => setTimeout(r, 1100));
-      setProgressSteps((prev) =>
-        prev.map((s) =>
-          s.key === 'llm' ? { ...s, status: 'done' } : s.key === 'parse' ? { ...s, status: 'running' } : s
-        )
-      );
-      await new Promise((r) => setTimeout(r, 600));
-      setProgressSteps((prev) => prev.map((s) => (s.key === 'parse' ? { ...s, status: 'done' } : s)));
-      setPendingScript(mockScript);
-      setPreviewText(mockScript.map((s) => s.narration).join('\n\n'));
+      setStepStatus('check', 'done');
+      setStepStatus('llm', 'running');
+
+      const job = await createMovieStoryJob({
+        video_path: uploadedVideoPath,
+        subtitle_path: uploadedSubtitlePath || undefined,
+        video_theme: project?.name || '',
+        narration_style:
+          config.narrationStyle === 'default' ? 'general' : config.narrationStyle,
+        generation_mode:
+          config.generationMode === 'auto' ? 'balanced' : config.generationMode,
+        visual_mode: 'auto',
+        target_duration_minutes: 8,
+        highlight_only: config.editMode === 'highlight_only',
+      });
+
+      const snapshot = await waitForJob(job.task_id, {
+        intervalMs: 2000,
+        onTick: (snap) => {
+          if (snap.message) {
+            setStepStatus('llm', 'running', snap.message);
+          }
+        },
+      });
+
+      setStepStatus('llm', 'done');
+      setStepStatus('parse', 'running');
+
+      const artifacts = extractMovieStoryArtifacts(snapshot);
+      const items = normalizeScriptItems(artifacts.scriptItems);
+      if (items.length === 0) {
+        throw new Error('后端未返回解说脚本，请检查日志');
+      }
+
+      setStepStatus('parse', 'done');
+      setPendingScript(items);
+      setPreviewText(items.map((s) => s.narration).join('\n\n'));
       setGenerating(false);
       setProgressSteps([]);
       toast.success('解说文案已生成，请预览并确认');
       setPreviewOpen(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '生成失败');
+      setProgressSteps((prev) =>
+        prev.map((s) =>
+          s.status === 'running' ? { ...s, status: 'error' } : s
+        )
+      );
       setGenerating(false);
-      setProgressSteps([]);
+      setTimeout(() => setProgressSteps([]), 600);
     }
   };
 
@@ -265,9 +384,8 @@ export default function MaterialPage() {
             onStartRecognition={() => void onSubtitleStart()}
             subtitles={subtitles}
             onSubtitlesChange={setSubtitles}
-            onSubtitleFileSelect={(_file, parsed) => {
-              setSubtitles(parsed);
-              setRecognitionDone(true);
+            onSubtitleFileSelect={(file, parsed) => {
+              void onSubtitleFileUploaded(file, parsed);
             }}
             videoFile={uploadedFile}
             videoUrl={videoUrl}

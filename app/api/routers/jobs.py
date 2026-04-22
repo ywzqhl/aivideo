@@ -10,6 +10,7 @@ from app.api.schemas.jobs import (
     JobAcceptedResponse,
     JobStatusResponse,
     MovieStoryJobCreateRequest,
+    SubtitleJobCreateRequest,
     VideoJobCreateRequest,
 )
 from app.config import config
@@ -18,6 +19,7 @@ from app.services.local_job_runner import (
     get_task_snapshot,
     start_local_highlight_script_job,
     start_local_movie_story_script_job,
+    start_local_subtitle_job,
     start_local_video_job,
 )
 
@@ -90,6 +92,15 @@ def create_movie_story_script_job(
     payload: MovieStoryJobCreateRequest, authorization: Optional[str] = Header(default=None)
 ):
     task_id = start_local_movie_story_script_job(request=payload.request.model_dump(), task_id=payload.task_id)
+    _record_history(_extract_user_email(authorization), task_id)
+    return _accepted_response(task_id)
+
+
+@router.post("/subtitle", response_model=JobAcceptedResponse, status_code=202)
+def create_subtitle_job(
+    payload: SubtitleJobCreateRequest, authorization: Optional[str] = Header(default=None)
+):
+    task_id = start_local_subtitle_job(request=payload.request.model_dump(), task_id=payload.task_id)
     _record_history(_extract_user_email(authorization), task_id)
     return _accepted_response(task_id)
 

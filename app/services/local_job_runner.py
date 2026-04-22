@@ -11,6 +11,7 @@ from app.models.schema import VideoClipParams
 from app.services import state as sm
 from app.services import task
 from app.services.highlight_edit_pipeline import run_highlight_edit_pipeline
+from app.services import subtitle as subtitle_service
 from app.services.subtitle_first_pipeline import run_subtitle_first_pipeline
 from app.utils import utils
 
@@ -230,6 +231,43 @@ def start_local_movie_story_script_job(request: Dict[str, Any], task_id: str = "
     return _start_job_thread(
         task_id=task_id,
         job_type="movie_story_script",
+        runner=runner,
+    )
+
+
+def start_local_subtitle_job(request: Dict[str, Any], task_id: str = "") -> str:
+    task_id = str(task_id or uuid4())
+
+    def runner() -> Dict[str, Any]:
+        video_path = str(request.get("video_path", "") or "").strip()
+        backend = str(request.get("backend", "") or "").strip()
+        model = str(request.get("model", "") or "").strip()
+        if not video_path:
+            raise ValueError("video_path is required")
+
+        _update_processing_state(task_id, "subtitle", 5, "准备提取音频")
+
+        subtitle_file = subtitle_service.extract_audio_and_create_subtitle(
+            video_file=video_path,
+            backend_override=backend,
+            model_override=model,
+        )
+
+        if not subtitle_file:
+            raise RuntimeError("字幕识别失败：未生成字幕文件")
+
+        _update_processing_state(task_id, "subtitle", 95, "整理识别结果")
+
+        return {
+            "success": True,
+            "subtitle_path": subtitle_file,
+            "backend": backend or "",
+            "model": model or "",
+        }
+
+    return _start_job_thread(
+        task_id=task_id,
+        job_type="subtitle",
         runner=runner,
     )
 

@@ -1,4 +1,4 @@
-import { Check, Loader2, Sparkles } from 'lucide-react';
+import { Check, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -17,87 +17,116 @@ interface GenerationProgressModalProps {
   subtitle?: string;
   steps: GenerationStep[];
   onCancel?: () => void;
+  onClose?: () => void;
   cancelDisabled?: boolean;
+  cancelLabel?: string;
+  showStepList?: boolean;
 }
 
 export default function GenerationProgressModal({
   open,
-  title = '正在请求大模型',
-  subtitle = 'AI 正在创作文案，请稍候…',
+  title = '正在请求大模型...',
+  subtitle,
   steps,
   onCancel,
+  onClose,
   cancelDisabled,
+  cancelLabel = '取消生成',
+  showStepList = true,
 }: GenerationProgressModalProps) {
   if (!open) return null;
+
+  const doneCount = steps.filter((s) => s.status === 'done').length;
+  const total = steps.length || 1;
+  const runningStep = steps.find((s) => s.status === 'running');
+  const pct = Math.round((doneCount / total) * 100);
+  const hint =
+    runningStep?.hint || (runningStep ? 'AI 正在匹配画面，请稍候...' : 'AI 正在创作文案，请稍候…');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md bg-[#0B110D] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden">
-        <div className="px-6 pt-6 pb-4 flex flex-col items-center text-center">
-          <div className="w-14 h-14 rounded-full bg-[#46ec13]/10 flex items-center justify-center mb-4">
-            <Sparkles className="w-6 h-6 text-[#46ec13] animate-pulse" />
+      <div className="relative w-full max-w-xl bg-[#0B110D] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden">
+        <div className="px-8 pt-7 pb-4 flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-2 text-[#46ec13] text-sm">
+              <span>智能分析</span>
+              <span className="text-white/40">·</span>
+              <span>智能分析</span>
+            </div>
+            <h2 className="text-xl font-semibold text-white">{title}</h2>
           </div>
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
-          <p className="text-sm text-slate-400 mt-1">{subtitle}</p>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-white/60 hover:text-white text-sm flex items-center gap-1"
+              title="关闭"
+            >
+              关闭
+              <X className="w-4 h-4" />
+            </button>
+          ) : null}
         </div>
 
-        <div className="px-6 py-4 space-y-3">
-          {steps.map((s) => (
+        <div className="px-8 pb-4">
+          <p className="text-sm text-white/70 mb-3">{subtitle || hint}</p>
+          <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
             <div
-              key={s.key}
-              className={cn(
-                'flex items-start gap-3 px-3 py-2.5 rounded-lg border',
-                s.status === 'running' && 'border-[#46ec13]/30 bg-[#46ec13]/[0.05]',
-                s.status === 'done' && 'border-white/[0.08] bg-white/[0.02]',
-                s.status === 'pending' && 'border-white/[0.04] bg-transparent',
-                s.status === 'error' && 'border-red-500/30 bg-red-500/[0.05]'
-              )}
-            >
-              <span className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0">
-                {s.status === 'done' ? (
-                  <span className="w-5 h-5 rounded-full bg-[#46ec13] text-[#060a07] flex items-center justify-center">
-                    <Check className="w-3 h-3" />
-                  </span>
-                ) : s.status === 'running' ? (
-                  <Loader2 className="w-5 h-5 text-[#46ec13] animate-spin" />
-                ) : s.status === 'error' ? (
-                  <span className="w-5 h-5 rounded-full border border-red-500 text-red-500 flex items-center justify-center text-xs">
-                    !
-                  </span>
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-slate-600 mx-auto" />
-                )}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div
-                  className={cn(
-                    'text-sm font-medium',
-                    s.status === 'running' && 'text-[#46ec13]',
-                    s.status === 'done' && 'text-white',
-                    s.status === 'pending' && 'text-slate-500',
-                    s.status === 'error' && 'text-red-400'
-                  )}
-                >
-                  {s.label}
-                </div>
-                {s.hint ? (
-                  <div className="text-xs text-slate-500 mt-0.5 truncate">{s.hint}</div>
-                ) : null}
-              </div>
-            </div>
-          ))}
+              className="h-full bg-[#46ec13] transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs mt-2">
+            <span className="text-white/50">进度</span>
+            <span className="text-white/70">{pct}%</span>
+          </div>
         </div>
+
+        {showStepList ? (
+          <div className="px-8 pb-4">
+            <div className="h-px bg-white/5 mb-4" />
+            <div className="text-sm text-white/70 mb-3">分析步骤：</div>
+            <div className="space-y-2">
+              {steps.map((s, idx) => (
+                <div key={s.key} className="flex items-start gap-3 text-sm">
+                  <span className="mt-0.5 w-5 h-5 shrink-0 flex items-center justify-center">
+                    {s.status === 'done' ? (
+                      <span className="w-5 h-5 rounded-full bg-[#46ec13] text-[#060a07] flex items-center justify-center">
+                        <Check className="w-3 h-3" />
+                      </span>
+                    ) : s.status === 'running' ? (
+                      <Loader2 className="w-4 h-4 text-[#46ec13] animate-spin" />
+                    ) : (
+                      <span className="text-white/40">{idx + 1}.</span>
+                    )}
+                  </span>
+                  <div
+                    className={cn(
+                      'flex-1',
+                      s.status === 'running' && 'text-[#46ec13]',
+                      s.status === 'done' && 'text-white/80',
+                      s.status === 'pending' && 'text-white/40',
+                      s.status === 'error' && 'text-red-400'
+                    )}
+                  >
+                    {s.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {onCancel ? (
-          <div className="px-6 py-4 border-t border-white/[0.06] flex justify-center">
+          <div className="px-8 py-4 border-t border-white/[0.06] flex justify-end">
             <Button
               variant="outline"
               onClick={onCancel}
               disabled={cancelDisabled}
-              className="border-white/[0.1] text-slate-300 hover:text-white hover:bg-white/[0.05]"
+              className="border-white/[0.1] bg-transparent text-white hover:bg-white/[0.05]"
             >
-              取消生成
+              {cancelLabel}
             </Button>
           </div>
         ) : null}

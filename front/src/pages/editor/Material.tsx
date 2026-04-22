@@ -1,25 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  FolderUp,
-  RefreshCcw,
-  UploadCloud,
-  Wand2,
-} from 'lucide-react';
+import { CheckCircle2, RefreshCcw, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import {
   type Project,
@@ -27,6 +9,12 @@ import {
   updateProject,
 } from '@/lib/projects-store';
 import { toast } from 'sonner';
+import type { SubtitleLine } from '@/lib/api';
+import VideoUploadStep from '@/components/workspace/VideoUploadStep';
+import SubtitleStep from '@/components/workspace/SubtitleStep';
+import ConfigStep, {
+  type ConfigFormValue,
+} from '@/components/workspace/ConfigStep';
 import CopywritingPreviewDialog from '@/components/workspace/CopywritingPreviewDialog';
 import GenerationProgressModal, {
   type GenerationStep,
@@ -34,37 +22,77 @@ import GenerationProgressModal, {
 
 type Ctx = { project?: Project };
 
+type Phase = 'upload' | 'subtitle' | 'config' | 'generate';
+
 const STEPS = [
-  { key: 'upload', label: '视频上传' },
-  { key: 'config', label: '参数配置' },
-  { key: 'generate', label: '内容生成' },
+  { key: 'upload', label: '视频上传', matches: ['upload', 'subtitle'] as Phase[] },
+  { key: 'config', label: '参数配置', matches: ['config'] as Phase[] },
+  { key: 'generate', label: '内容生成', matches: ['generate'] as Phase[] },
 ] as const;
 
-type StepKey = (typeof STEPS)[number]['key'];
+const defaultConfig: ConfigFormValue = {
+  editMode: 'smart_insert',
+  originalRatio: 45,
+  videoLanguage: 'zh',
+  narrationLanguage: 'zh',
+  generationMode: 'auto',
+  speechSpeed: 'moderate',
+  wordCount: 'default',
+  perspective: 'third',
+  narrationStyle: 'default',
+  scriptType: 'standard',
+  temperature: 0.7,
+  ttsEngine: 'edge-tts',
+  voiceRole: 'female_gentle',
+  speed: 1,
+  aspectRatio: '16:9',
+  videoQuality: 'high',
+  subtitleFont: 'default',
+  subtitleSize: 24,
+  subtitleEnabled: true,
+};
+
+const mockSubtitles: SubtitleLine[] = [
+  { id: 1, start: '00:00:00.000', end: '00:00:21.500', text: '吃撑了，就躺在龙椅上晒太阳。晒呀，晒呀，直至饿了。直到饿了，就再接着吃面膜，吃大饼。' },
+  { id: 2, start: '00:00:22.900', end: '00:00:32.100', text: '知道了吧？这就是皇上！' },
+  { id: 3, start: '00:00:45.500', end: '00:01:04.700', text: '全村一开春就断粮了，男女老少天天饿得眼睛发绿呀。那时候咱就觉得做皇帝多好啊。' },
+  { id: 4, start: '00:01:04.700', end: '00:01:19.100', text: '后来真要做了皇上才明白，原来这把龙椅并没有想象中那么舒服。' },
+  { id: 5, start: '00:01:19.100', end: '00:01:35.000', text: '江山是锦绣，但也是沉重的铁甲，压得人喘不过气。' },
+];
+
+const mockScript: ScriptItem[] = [
+  { id: 's1', startTime: '00:00:00,000', endTime: '00:00:21,500', originalSubtitle: '吃撑了，就躺在龙椅上晒太阳…', narration: '一开场，这位皇帝就把"躺平"二字演绎到了极致——吃饱睡，睡饱吃，龙椅当床，面膜大饼轮着上。' },
+  { id: 's2', startTime: '00:00:22,900', endTime: '00:00:32,100', originalSubtitle: '知道了吧？这就是皇上！', narration: '别笑，这还真是九五之尊的日常。看着荒诞，却藏着一整个王朝的倦怠。' },
+  { id: 's3', startTime: '00:00:45,500', endTime: '00:01:04,700', originalSubtitle: '全村一开春就断粮了…', narration: '可镜头一转，百姓却在春荒里挨饿。民间的饥饿与宫里的慵懒，被一刀切开两个世界。' },
+  { id: 's4', startTime: '00:01:04,700', endTime: '00:01:19,100', originalSubtitle: '后来真要做了皇上才明白…', narration: '少年梦里想当皇帝，以为是天堂的通行证；真坐上去才知道，这把龙椅更像一副铁打的枷。' },
+  { id: 's5', startTime: '00:01:19,100', endTime: '00:01:35,000', originalSubtitle: '江山是锦绣，但也是沉重的铁甲…', narration: '锦绣江山在他肩上沉甸甸地合拢——原来最难扛的，不是敌人的刀，而是自己的那身龙袍。' },
+];
 
 export default function MaterialPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { project } = useOutletContext<Ctx>();
 
-  const [step, setStep] = useState<StepKey>(project?.currentStep ?? 'upload');
-  const [uploading, setUploading] = useState(false);
+  const [phase, setPhase] = useState<Phase>('upload');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | undefined>(project?.videoUrl);
+
+  const [subtitleMode, setSubtitleMode] = useState<'auto' | 'upload' | null>(null);
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [recognitionDone, setRecognitionDone] = useState(false);
+  const [subtitles, setSubtitles] = useState<SubtitleLine[]>([]);
+
+  const [config, setConfig] = useState<ConfigFormValue>(defaultConfig);
+
   const [generating, setGenerating] = useState(false);
   const [progressSteps, setProgressSteps] = useState<GenerationStep[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewText, setPreviewText] = useState('');
   const [pendingScript, setPendingScript] = useState<ScriptItem[]>([]);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const [cfgLLM, setCfgLLM] = useState(project?.config?.llmProvider ?? 'openai');
-  const [cfgModel, setCfgModel] = useState(project?.config?.llmModel ?? 'gpt-4o');
-  const [cfgStyle, setCfgStyle] = useState(project?.config?.style ?? 'neutral');
-  const [cfgTTS, setCfgTTS] = useState(project?.config?.ttsProvider ?? 'edge-tts');
-  const [cfgVoice, setCfgVoice] = useState(project?.config?.ttsVoice ?? 'zh-CN-XiaoxiaoNeural');
-  const [cfgAspect, setCfgAspect] = useState(project?.config?.aspectRatio ?? '9:16');
-  const [prompt, setPrompt] = useState(
-    '生成风格活泼、语速适中的解说脚本，突出关键情节冲突与情绪反差。'
-  );
+  useEffect(() => {
+    setVideoUrl(project?.videoUrl);
+  }, [project?.videoUrl]);
 
   if (!id || !project) {
     return (
@@ -77,67 +105,35 @@ export default function MaterialPage() {
     );
   }
 
-  const handleFile = async (file: File) => {
-    setUploading(true);
-    try {
-      const objectUrl = URL.createObjectURL(file);
-      // Simulate progress for a snappy UX; real API integration lives in /lib/api.ts.
-      await new Promise((r) => setTimeout(r, 800));
+  const activeStepIdx = STEPS.findIndex((s) => (s.matches as Phase[]).includes(phase));
+
+  const onVideoPicked = (file: File | null) => {
+    setUploadedFile(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setVideoUrl(url);
       updateProject(id, {
         videoFileName: file.name,
-        videoUrl: objectUrl,
+        videoUrl: url,
         currentStep: 'upload',
-        thumbnailUrl: project.thumbnailUrl,
       });
-      toast.success('视频已载入');
-    } finally {
-      setUploading(false);
+    } else {
+      setVideoUrl(undefined);
+      updateProject(id, { videoFileName: undefined, videoUrl: undefined });
     }
   };
 
-  const handleSelect: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const file = e.target.files?.[0];
-    if (file) void handleFile(file);
+  const onSubtitleStart = async () => {
+    setSubtitleMode('auto');
+    setIsRecognizing(true);
+    try {
+      await new Promise((r) => setTimeout(r, 1400));
+      setSubtitles(mockSubtitles);
+      setRecognitionDone(true);
+    } finally {
+      setIsRecognizing(false);
+    }
   };
-
-  const saveConfig = () => {
-    updateProject(id, {
-      currentStep: 'generate',
-      config: {
-        llmProvider: cfgLLM,
-        llmModel: cfgModel,
-        style: cfgStyle,
-        ttsProvider: cfgTTS,
-        ttsVoice: cfgVoice,
-        aspectRatio: cfgAspect,
-      },
-    });
-    setStep('generate');
-  };
-
-  const mockScript: ScriptItem[] = [
-    {
-      id: 's1',
-      startTime: '00:00:00,000',
-      endTime: '00:00:04,500',
-      originalSubtitle: '雨后的长街只剩下零星的脚步声',
-      narration: '这是一个属于他的时代——当雨还没停的时候。',
-    },
-    {
-      id: 's2',
-      startTime: '00:00:04,500',
-      endTime: '00:00:09,200',
-      originalSubtitle: '他缓缓抬头，看向远处的灯火',
-      narration: '远处的灯火跳动，像命运正在向他低声点头。',
-    },
-    {
-      id: 's3',
-      startTime: '00:00:09,200',
-      endTime: '00:00:14,000',
-      originalSubtitle: '一阵风掠过，吹起衣角',
-      narration: '风声里藏着未说出口的抉择，他终于迈出了第一步。',
-    },
-  ];
 
   const generate = async () => {
     setGenerating(true);
@@ -148,13 +144,13 @@ export default function MaterialPage() {
     ];
     setProgressSteps(stepsDef);
     try {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 700));
       setProgressSteps((prev) =>
         prev.map((s) =>
           s.key === 'check' ? { ...s, status: 'done' } : s.key === 'llm' ? { ...s, status: 'running' } : s
         )
       );
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1100));
       setProgressSteps((prev) =>
         prev.map((s) =>
           s.key === 'llm' ? { ...s, status: 'done' } : s.key === 'parse' ? { ...s, status: 'running' } : s
@@ -166,6 +162,7 @@ export default function MaterialPage() {
       setPreviewText(mockScript.map((s) => s.narration).join('\n\n'));
       setGenerating(false);
       setProgressSteps([]);
+      toast.success('解说文案已生成，请预览并确认');
       setPreviewOpen(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '生成失败');
@@ -189,7 +186,7 @@ export default function MaterialPage() {
   };
 
   return (
-    <div className="container-workspace py-8 pb-28 flex-1 flex flex-col">
+    <div className="container-workspace py-8 flex-1 flex flex-col">
       <header className="mb-6">
         <h2 className="text-2xl font-bold">
           项目名称：<span className="text-[#46ec13]">{project.name}</span>
@@ -199,26 +196,24 @@ export default function MaterialPage() {
         </p>
       </header>
 
-      {/* Steps indicator */}
+      {/* Step indicator */}
       <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 mb-6">
         <div className="flex items-center gap-2 text-sm flex-wrap">
           {STEPS.map((s, i) => {
-            const active = step === s.key;
-            const done =
-              STEPS.findIndex((x) => x.key === step) > i ||
-              (project.currentStep === 'generate' && s.key !== 'generate');
+            const active = activeStepIdx === i;
+            const done = activeStepIdx > i;
             return (
               <div key={s.key} className="flex items-center gap-2 flex-1 min-w-[160px]">
                 <button
                   type="button"
-                  onClick={() => setStep(s.key)}
+                  onClick={() => {
+                    if (i === 0) setPhase(uploadedFile || videoUrl ? 'subtitle' : 'upload');
+                    else if (i === 1) setPhase('config');
+                    else setPhase('generate');
+                  }}
                   className={cn(
                     'flex items-center gap-2 px-3 py-1.5 rounded-full transition',
-                    active
-                      ? 'text-[#46ec13]'
-                      : done
-                        ? 'text-white/85 hover:text-white'
-                        : 'text-white/50 hover:text-white'
+                    active ? 'text-[#46ec13]' : done ? 'text-white/85 hover:text-white' : 'text-white/50 hover:text-white'
                   )}
                 >
                   <span
@@ -236,12 +231,7 @@ export default function MaterialPage() {
                   <span className="text-sm">{s.label}</span>
                 </button>
                 {i < STEPS.length - 1 ? (
-                  <div
-                    className={cn(
-                      'flex-1 h-px',
-                      done ? 'bg-[#46ec13]/50' : 'bg-white/10'
-                    )}
-                  />
+                  <div className={cn('flex-1 h-px', done ? 'bg-[#46ec13]/50' : 'bg-white/10')} />
                 ) : null}
               </div>
             );
@@ -249,129 +239,51 @@ export default function MaterialPage() {
         </div>
       </div>
 
-      {/* Step content */}
-      <div className="flex-1">
-        {step === 'upload' ? (
-          <div
-            className={cn(
-              'rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] p-16 flex flex-col items-center justify-center text-center min-h-[360px]',
-              uploading && 'opacity-70'
-            )}
-          >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
-              style={{ background: 'rgba(70,236,19,0.12)', color: '#46ec13' }}
-            >
-              <UploadCloud className="w-7 h-7" />
-            </div>
-            <h3 className="text-lg font-semibold">
-              {project.videoFileName ? `已载入：${project.videoFileName}` : '拖拽或选择文件上传'}
-            </h3>
-            <p className="text-sm text-white/55 mt-2 max-w-md">
-              支持 MP4, MOV, AVI, WEBM 等格式，文件大小不超过 1GB，建议视频时长不超过 40 分钟
-            </p>
-            <input
-              ref={fileRef}
-              onChange={handleSelect}
-              type="file"
-              accept="video/*"
-              className="hidden"
-            />
-            <div className="mt-6 flex items-center gap-3">
-              <Button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6"
-              >
-                <FolderUp className="w-4 h-4 mr-1" />
-                {uploading ? '上传中…' : '选择文件'}
-              </Button>
-              <span className="text-xs text-white/45">
-                或从 <a className="text-[#46ec13] hover:underline" href="#">素材库选择</a>
-              </span>
-            </div>
-          </div>
-        ) : null}
-
-        {step === 'config' ? (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 space-y-4">
-              <h3 className="font-semibold">AI 脚本生成</h3>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">LLM 提供商</Label>
-                <Select value={cfgLLM} onValueChange={setCfgLLM}>
-                  <SelectTrigger className="bg-[#0f1611] border-white/10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-[#0b110d] border-white/10 text-white">
-                    <SelectItem value="openai">OpenAI</SelectItem>
-                    <SelectItem value="gemini">Google Gemini</SelectItem>
-                    <SelectItem value="qwen">阿里 Qwen</SelectItem>
-                    <SelectItem value="deepseek">DeepSeek</SelectItem>
-                    <SelectItem value="siliconflow">SiliconFlow</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">模型</Label>
-                <Input value={cfgModel} onChange={(e) => setCfgModel(e.target.value)} className="bg-[#0f1611] border-white/10" />
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">解说风格</Label>
-                <Select value={cfgStyle} onValueChange={setCfgStyle}>
-                  <SelectTrigger className="bg-[#0f1611] border-white/10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-[#0b110d] border-white/10 text-white">
-                    <SelectItem value="neutral">中性客观</SelectItem>
-                    <SelectItem value="energetic">活泼热血</SelectItem>
-                    <SelectItem value="humor">幽默搞笑</SelectItem>
-                    <SelectItem value="narrative">叙事深沉</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">额外 Prompt（可选）</Label>
-                <Textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  rows={3}
-                  className="bg-[#0f1611] border-white/10"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 space-y-4">
-              <h3 className="font-semibold">配音 & 成片</h3>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">TTS 引擎</Label>
-                <Select value={cfgTTS} onValueChange={setCfgTTS}>
-                  <SelectTrigger className="bg-[#0f1611] border-white/10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-[#0b110d] border-white/10 text-white">
-                    <SelectItem value="edge-tts">Edge TTS</SelectItem>
-                    <SelectItem value="siliconflow">SiliconFlow</SelectItem>
-                    <SelectItem value="volcengine">火山引擎</SelectItem>
-                    <SelectItem value="gpt-sovits">GPT-SoVITS</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">音色</Label>
-                <Input value={cfgVoice} onChange={(e) => setCfgVoice(e.target.value)} className="bg-[#0f1611] border-white/10" />
-              </div>
-              <div className="grid gap-2">
-                <Label className="text-xs text-white/70">画面比例</Label>
-                <Select value={cfgAspect} onValueChange={setCfgAspect}>
-                  <SelectTrigger className="bg-[#0f1611] border-white/10"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-[#0b110d] border-white/10 text-white">
-                    <SelectItem value="9:16">9:16（竖屏 · 抖音/小红书）</SelectItem>
-                    <SelectItem value="16:9">16:9（横屏 · YouTube/B 站）</SelectItem>
-                    <SelectItem value="1:1">1:1（方形 · Instagram）</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {step === 'generate' ? (
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-10 text-center min-h-[360px] flex flex-col items-center justify-center">
+      {/* Phase content - card wrapper */}
+      <div className="flex-1 min-h-[640px] rounded-2xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden flex flex-col">
+        {phase === 'upload' && (
+          <VideoUploadStep
+            uploadedFile={uploadedFile}
+            videoUrl={videoUrl}
+            onFileSelect={onVideoPicked}
+            onBack={() => navigate(`/projects/${id}`)}
+            onNext={() => setPhase('subtitle')}
+          />
+        )}
+        {phase === 'subtitle' && (
+          <SubtitleStep
+            subtitleMode={subtitleMode}
+            onModeSelect={setSubtitleMode}
+            isRecognizing={isRecognizing}
+            recognitionDone={recognitionDone}
+            onStartRecognition={() => void onSubtitleStart()}
+            subtitles={subtitles}
+            onSubtitlesChange={setSubtitles}
+            onSubtitleFileSelect={(_file, parsed) => {
+              setSubtitles(parsed);
+              setRecognitionDone(true);
+            }}
+            videoFile={uploadedFile}
+            videoUrl={videoUrl}
+            onReupload={() => setPhase('upload')}
+          />
+        )}
+        {phase === 'config' && (
+          <ConfigStep
+            projectType="movie"
+            value={config}
+            onChange={setConfig}
+            onBack={() => setPhase('subtitle')}
+            onReupload={() => setPhase('upload')}
+            onGenerate={() => {
+              setPhase('generate');
+              void generate();
+            }}
+            generating={generating}
+          />
+        )}
+        {phase === 'generate' && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12">
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center mb-5"
               style={{ background: 'rgba(70,236,19,0.12)', color: '#46ec13' }}
@@ -380,26 +292,65 @@ export default function MaterialPage() {
             </div>
             <h3 className="text-lg font-semibold">准备好生成剪辑脚本</h3>
             <p className="text-sm text-white/55 mt-2 max-w-md">
-              点击"开始生成"后，系统将自动转写字幕、切分关键片段并撰写解说文案。
+              点击"开始生成"后，系统将自动合成解说文案，稍等片刻。
             </p>
-            <Button
-              onClick={generate}
-              disabled={generating}
-              className="mt-6 bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6 brand-glow"
-            >
-              {generating ? (
-                <>
-                  <RefreshCcw className="w-4 h-4 mr-1 animate-spin" /> 生成中…
-                </>
-              ) : (
-                <>
-                  <Wand2 className="w-4 h-4 mr-1" /> 开始生成
-                </>
-              )}
-            </Button>
+            <div className="mt-6 flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setPhase('config')}
+                className="border-white/15 bg-transparent text-white hover:bg-white/5"
+              >
+                返回配置
+              </Button>
+              <Button
+                onClick={generate}
+                disabled={generating}
+                className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6 brand-glow"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCcw className="w-4 h-4 mr-1 animate-spin" /> 生成中…
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-1" /> 开始生成
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        ) : null}
+        )}
       </div>
+
+      {/* Sub-step progression helpers (shown only on upload phase when video uploaded) */}
+      {phase === 'upload' && uploadedFile && (
+        <div className="mt-4 flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setPhase('subtitle')}
+            className="border-[#46ec13]/40 text-[#46ec13] hover:bg-[#46ec13]/10 bg-transparent"
+          >
+            下一步：字幕识别 →
+          </Button>
+        </div>
+      )}
+      {phase === 'subtitle' && recognitionDone && (
+        <div className="mt-4 flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setPhase('upload')}
+            className="border-white/15 bg-transparent text-white hover:bg-white/5"
+          >
+            ← 返回上一步
+          </Button>
+          <Button
+            onClick={() => setPhase('config')}
+            className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold rounded-lg px-6"
+          >
+            下一步：配置参数 →
+          </Button>
+        </div>
+      )}
 
       <GenerationProgressModal
         open={generating}
@@ -421,52 +372,6 @@ export default function MaterialPage() {
         }}
         onConfirm={confirmPreview}
       />
-
-      {/* Sticky footer actions */}
-      <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-white/5 bg-[#060a07]/95 backdrop-blur px-6 py-3 flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/projects')}
-          className="text-white/60 hover:text-white"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" /> 返回
-        </Button>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => fileRef.current?.click()}
-            className="border-white/15 bg-transparent text-white hover:bg-white/5"
-          >
-            <UploadCloud className="w-4 h-4 mr-1" /> 重新上传
-          </Button>
-          {step === 'upload' ? (
-            <Button
-              disabled={!project.videoUrl}
-              onClick={() => setStep('config')}
-              className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold disabled:opacity-50 disabled:pointer-events-none"
-            >
-              下一步：配置参数 <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : null}
-          {step === 'config' ? (
-            <Button
-              onClick={saveConfig}
-              className="bg-[#46ec13] hover:bg-[#37c00c] text-[#060a07] font-semibold"
-            >
-              下一步：生成脚本 <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : null}
-          {step === 'generate' ? (
-            <Button
-              onClick={() => navigate(`/projects/${id}/analysis`)}
-              variant="outline"
-              className="border-[#46ec13]/50 text-[#46ec13] bg-transparent hover:bg-[#46ec13]/10"
-            >
-              查看剪辑脚本 <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : null}
-        </div>
-      </footer>
     </div>
   );
 }

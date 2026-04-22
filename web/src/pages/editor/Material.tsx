@@ -153,6 +153,7 @@ export default function MaterialPage() {
       const resp = await uploadVideo(file);
       if (token !== uploadTokenRef.current) return; // 用户切过文件
       setUploadedVideoPath(resp.path);
+      updateProject(id, { uploadedVideoPath: resp.path });
     } catch (err) {
       if (token !== uploadTokenRef.current) return;
       toast.error(
@@ -184,6 +185,7 @@ export default function MaterialPage() {
       const lines = await readSubtitleLines(subtitlePath);
       setSubtitles(lines);
       setUploadedSubtitlePath(subtitlePath);
+      updateProject(id, { uploadedSubtitlePath: subtitlePath });
       setRecognitionDone(true);
       toast.success(`字幕识别完成，共 ${lines.length} 条`);
     } catch (err) {
@@ -205,6 +207,7 @@ export default function MaterialPage() {
     try {
       const resp = await uploadSubtitle(file);
       setUploadedSubtitlePath(resp.path);
+      updateProject(id, { uploadedSubtitlePath: resp.path });
     } catch (err) {
       toast.error(
         `字幕文件上传到服务端失败：${err instanceof Error ? err.message : '未知错误'}`

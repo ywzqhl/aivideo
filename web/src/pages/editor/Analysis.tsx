@@ -20,9 +20,44 @@ import {
 } from '@/lib/projects-store';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  createMovieStoryJob,
+  extractMovieStoryArtifacts,
+  waitForJob,
+} from '@/lib/api';
 import GenerationProgressModal, {
   type GenerationStep,
 } from '@/components/workspace/GenerationProgressModal';
+
+function normalizeScriptItems(items: unknown[]): ScriptItem[] {
+  if (!Array.isArray(items)) return [];
+  return items.map((raw, index) => {
+    const item = (raw || {}) as Record<string, unknown>;
+    const timestamp = String(item.timestamp ?? '');
+    const [ts0 = '', ts1 = ''] = timestamp.split('-');
+    const startTime = String(
+      ts0 || item.start || item.startTime || ''
+    );
+    const endTime = String(ts1 || item.end || item.endTime || '');
+    const narration = String(
+      item.narration || item.new_content || item.content || item.text || ''
+    );
+    const originalSubtitle = String(
+      item.original_subtitle ||
+        item.originalSubtitle ||
+        item.subtitle_text ||
+        item.original ||
+        ''
+    );
+    return {
+      id: String(item.id || item._id || `s${index + 1}`),
+      startTime: startTime || '00:00:00,000',
+      endTime: endTime || '00:00:00,000',
+      originalSubtitle,
+      narration,
+    };
+  });
+}
 
 type Ctx = { project?: Project };
 
@@ -129,37 +164,83 @@ export default function AnalysisPage() {
     toast.success('脚本已导出');
   };
 
+  const setStepStatus = (
+    key: string,
+    status: GenerationStep['status'],
+    hint?: string
+  ) => {
+    setRematchSteps((prev) =>
+      prev.map((s) =>
+        s.key === key ? { ...s, status, ...(hint ? { hint } : {}) } : s
+      )
+    );
+  };
+
   const regenerate = async () => {
-    setRematching(true);
+    if (!project.uploadedVideoPath) {
+      toast.error('视频尚未上传到服务端，请先返回材料页重新上传视频');
+      return;
+    }
     const steps: GenerationStep[] = [
-      { key: 'upload', label: '确认视频资源并上传到对象存储', status: 'running' },
-      { key: 'submit', label: '提交 智能分析 任务至后端', status: 'pending' },
-      { key: 'llm', label: '等待智能模型合成解说脚本', status: 'pending', hint: 'AI 正在匹配画面，请稍候...' },
-      { key: 'save', label: '自动保存脚本并跳转到分析页面', status: 'pending' },
+      { key: 'submit', label: '提交重新生成任务至后端', status: 'running' },
+      {
+        key: 'llm',
+        label: '等待智能模型合成解说脚本',
+        status: 'pending',
+        hint: 'AI 正在匹配画面，请稍候...',
+      },
+      { key: 'save', label: '自动保存脚本', status: 'pending' },
     ];
     setRematchSteps(steps);
+    setRematching(true);
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      setRematchSteps((p) =>
-        p.map((s) => (s.key === 'upload' ? { ...s, status: 'done' } : s.key === 'submit' ? { ...s, status: 'running' } : s))
-      );
-      await new Promise((r) => setTimeout(r, 600));
-      setRematchSteps((p) =>
-        p.map((s) => (s.key === 'submit' ? { ...s, status: 'done' } : s.key === 'llm' ? { ...s, status: 'running' } : s))
-      );
-      await new Promise((r) => setTimeout(r, 1000));
-      setRematchSteps((p) =>
-        p.map((s) => (s.key === 'llm' ? { ...s, status: 'done' } : s.key === 'save' ? { ...s, status: 'running' } : s))
-      );
-      await new Promise((r) => setTimeout(r, 500));
-      setRematchSteps((p) => p.map((s) => (s.key === 'save' ? { ...s, status: 'done' } : s)));
-      setRematching(false);
-      setRematchSteps([]);
-      toast.success('已完成画面匹配');
+      const job = await createMovieStoryJob({
+        video_path: project.uploadedVideoPath,
+        subtitle_path: project.uploadedSubtitlePath || undefined,
+        video_theme: project.name || '',
+        narration_style: project.config?.style || 'general',
+        generation_mode: 'balanced',
+      });
+      setStepStatus('submit', 'done');
+      setStepStatus('llm', 'running');
+
+      const snapshot = await waitForJob(job.task_id, {
+        intervalMs: 2000,
+        onTick: (snap) => {
+          if (snap.message) {
+            setStepStatus('llm', 'running', snap.message);
+          }
+        },
+      });
+
+      const artifacts = extractMovieStoryArtifacts(snapshot);
+      const nextItems = normalizeScriptItems(artifacts.scriptItems);
+      if (nextItems.length === 0) {
+        throw new Error('后端未返回解说脚本');
+      }
+      setStepStatus('llm', 'done');
+      setStepStatus('save', 'running');
+
+      persist(nextItems);
+      setStepStatus('save', 'done');
+
+      toast.success(`重新生成完成，共 ${nextItems.length} 段脚本`);
+      setTimeout(() => {
+        setRematching(false);
+        setRematchSteps([]);
+      }, 500);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '匹配失败');
-      setRematching(false);
-      setRematchSteps([]);
+      const msg = err instanceof Error ? err.message : '重新生成失败';
+      setRematchSteps((prev) =>
+        prev.map((s) =>
+          s.status === 'running' ? { ...s, status: 'error', hint: msg } : s
+        )
+      );
+      toast.error(msg);
+      setTimeout(() => {
+        setRematching(false);
+        setRematchSteps([]);
+      }, 1500);
     }
   };
 

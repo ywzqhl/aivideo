@@ -28,6 +28,10 @@ export type Project = {
   updatedAt: string;
   currentStep: ProjectStep;
   inferenceMode?: InferenceMode;
+  // Server-side paths captured after upload / pipeline runs. These are what
+  // backend jobs need (e.g. createMovieStoryJob expects `video_path`).
+  uploadedVideoPath?: string;
+  uploadedSubtitlePath?: string;
   config?: {
     llmProvider?: string;
     llmModel?: string;

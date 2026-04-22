@@ -351,6 +351,26 @@ export async function getJobStatus(taskId: string): Promise<JobStatusResponse> {
   return requestJson<JobStatusResponse>(`/api/v1/jobs/${taskId}`, { method: 'GET' });
 }
 
+export type JobHistoryItem = {
+  task_id: string;
+  job_type: string;
+  status: string;
+  progress: number;
+  message: string;
+  error: string;
+  task_dir: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JobHistoryResponse = {
+  items: JobHistoryItem[];
+};
+
+export async function listJobHistory(): Promise<JobHistoryResponse> {
+  return requestJson<JobHistoryResponse>('/api/v1/auth/jobs', { method: 'GET' });
+}
+
 export async function waitForJob(
   taskId: string,
   options?: {

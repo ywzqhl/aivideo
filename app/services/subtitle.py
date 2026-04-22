@@ -859,10 +859,14 @@ def _create_with_bailian(audio_file: str, subtitle_file: str = "", model: str = 
         raw_srt_path, clean_srt_path = _derive_debug_paths(subtitle_file)
         segments_json_path = _derive_segments_json_path(subtitle_file)
         
-        # 调用百炼 ASR
+        resolved_model = (
+            model
+            or str(config.whisper.get("bailian_model", "") or "").strip()
+            or "qwen3-asr-flash"
+        )
         segments = recognize_with_bailian(
             audio_path=audio_file,
-            model=model or "qwen3-asr-flash",
+            model=resolved_model,
             language=DEFAULT_FORCE_LANGUAGE or "zh"
         )
         

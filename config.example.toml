@@ -147,8 +147,14 @@
     repetition_penalty = 10.0
 
 [whisper]
-    # 字幕识别后端，可选 faster-whisper / sensevoice / videocaptioner_shell / videolingo_shell
-    backend = "faster-whisper"
+    # 字幕识别后端，可选 bailian / faster-whisper / sensevoice / videocaptioner_shell / videolingo_shell
+    # 默认使用阿里云百炼 Paraformer（qwen3-asr-flash），云端识别，速度快、准确度高
+    backend = "bailian"
+    # 百炼 API Key：在 https://bailian.console.aliyun.com/?tab=model#/api-key 申请
+    # 未填此项时自动读取环境变量 DASHSCOPE_API_KEY
+    bailian_api_key = ""
+    # 百炼 ASR 模型，可选 qwen3-asr-flash / qwen3-asr-flash-filetrans / fun-asr
+    bailian_model = "qwen3-asr-flash"
     # For faster-whisper, place the converted local model under workspace/models/<model-name>.
     model_size = "faster-whisper-large-v3"
     funasr_vad_model = "fsmn-vad"

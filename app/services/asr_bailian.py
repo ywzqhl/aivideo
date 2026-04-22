@@ -34,14 +34,19 @@ class BailianASRService:
             api_key: 阿里云百炼 API Key，如果不提供则从配置读取
             region: 区域，cn=中国内地，intl=国际
         """
-        # 从配置读取 API Key（统一使用 whisper.bailian_api_key）
-        self.api_key = api_key or config.whisper.get("bailian_api_key", "")
+        # 优先级：显式入参 > config.whisper.bailian_api_key > 环境变量 DASHSCOPE_API_KEY
+        self.api_key = (
+            api_key
+            or config.whisper.get("bailian_api_key", "")
+            or os.getenv("DASHSCOPE_API_KEY", "")
+        )
         self.region = region
         self.base_url = self.BASE_URL_CN if region == "cn" else self.BASE_URL_INTL
-        
+
         if not self.api_key:
             raise ValueError(
-                "百炼 API Key 未配置，请在 config.toml 的 [whisper] 部分设置 bailian_api_key"
+                "百炼 API Key 未配置：请在 config.toml 的 [whisper] 部分设置 bailian_api_key，"
+                "或设置环境变量 DASHSCOPE_API_KEY"
             )
     
     def _get_headers(self, async_mode: bool = False) -> Dict[str, str]:

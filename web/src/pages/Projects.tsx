@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import CreateProjectModal, { type InferenceMode } from '@/components/workspace/CreateProjectModal';
 import DeleteProgressModal from '@/components/workspace/DeleteProgressModal';
+import ConfirmDialog from '@/components/workspace/ConfirmDialog';
 import {
   createProject,
   deleteProject,
@@ -64,6 +65,7 @@ function ProjectsInner() {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
   const [view, setView] = useState<'card' | 'table'>('card');
   const [createOpen, setCreateOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<Project | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
 
   const reload = () => setProjects(listProjects());
@@ -97,8 +99,14 @@ function ProjectsInner() {
   };
 
   const handleDelete = (project: Project) => {
-    if (!window.confirm(`确定删除项目「${project.name}」？`)) return;
-    setPendingDelete(project);
+    setConfirmTarget(project);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmTarget) return;
+    const target = confirmTarget;
+    setConfirmTarget(null);
+    setPendingDelete(target);
   };
 
   const finalizeDelete = () => {
@@ -336,6 +344,23 @@ function ProjectsInner() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreate={handleCreate}
+      />
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        title="删除项目"
+        description={
+          <>
+            确定删除项目
+            <span className="mx-1 font-semibold text-white">「{confirmTarget?.name}」</span>
+            吗？此操作将同步清理项目下的媒体与脚本资源，无法恢复。
+          </>
+        }
+        confirmText="删除"
+        cancelText="取消"
+        tone="danger"
+        onCancel={() => setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
       />
 
       <DeleteProgressModal

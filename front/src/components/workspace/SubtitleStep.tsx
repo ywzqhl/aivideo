@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Upload, FileText, Play, Video, Maximize2, RefreshCw, Download, Settings, ArrowLeft, ArrowRight, CloudUpload, Info, FileVideo, Volume2 } from 'lucide-react';
+import { Upload, FileText, Play, Video, Maximize2, RefreshCw, Download, Settings, ArrowLeft, ArrowRight, CloudUpload, Info, FileVideo, Volume2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SubtitleLine } from '@/lib/api';
 
@@ -141,6 +141,11 @@ export default function SubtitleStep({
   const handleEditSave = (id: number) => {
     onSubtitlesChange(subtitles.map((s) => (s.id === id ? { ...s, text: editText } : s)));
     setEditingId(null);
+  };
+
+  const handleDelete = (id: number) => {
+    onSubtitlesChange(subtitles.filter((s) => s.id !== id));
+    if (editingId === id) setEditingId(null);
   };
 
   const handleExport = () => {
@@ -369,26 +374,45 @@ export default function SubtitleStep({
               </div>
             ) : (
               subtitles.map((sub) => (
-                <div key={sub.id} className="flex items-start gap-3">
-                  <span className="shrink-0 mt-1 px-3 py-1.5 rounded-full bg-[#46ec13]/12 border border-[#46ec13]/30 text-[#46ec13] text-xs font-medium font-mono whitespace-nowrap">
+                <div key={sub.id} className="group flex items-center gap-3">
+                  <span className="shrink-0 px-3 py-1.5 rounded-full bg-[#46ec13]/12 border border-[#46ec13]/30 text-[#46ec13] text-xs font-medium font-mono whitespace-nowrap">
                     {formatTimeDisplay(sub.start)} · {formatTimeDisplay(sub.end)}
                   </span>
-                  {editingId === sub.id ? (
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      onBlur={() => handleEditSave(sub.id)}
-                      autoFocus
-                      className="flex-1 min-h-[56px] rounded-xl bg-white/[0.04] border border-[#46ec13]/40 px-4 py-3 text-sm text-white outline-none resize-none focus:border-[#46ec13] leading-relaxed"
-                    />
-                  ) : (
+                  <div className="relative flex-1 min-w-0">
+                    {editingId === sub.id ? (
+                      <input
+                        type="text"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        onBlur={() => handleEditSave(sub.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleEditSave(sub.id);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        autoFocus
+                        className="w-full h-11 rounded-xl bg-white/[0.04] border border-[#46ec13]/40 pl-4 pr-12 text-sm text-white outline-none focus:border-[#46ec13]"
+                      />
+                    ) : (
+                      <button
+                        onClick={() => handleEditStart(sub)}
+                        title={sub.text}
+                        className="w-full h-11 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[#46ec13]/30 pl-4 pr-12 text-sm text-slate-200 transition overflow-x-auto whitespace-nowrap text-left [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded"
+                      >
+                        {sub.text}
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleEditStart(sub)}
-                      className="flex-1 text-left rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[#46ec13]/30 px-4 py-3 text-sm text-slate-200 leading-relaxed transition"
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleDelete(sub.id);
+                      }}
+                      title="删除此条字幕"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-slate-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition"
                     >
-                      {sub.text}
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
                 </div>
               ))
             )}

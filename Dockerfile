@@ -1,4 +1,14 @@
-# 多阶段构建 - 构建阶段
+# ---------- 前端构建阶段 ----------
+FROM node:20-bookworm-slim AS frontend-builder
+
+WORKDIR /front
+COPY front/package.json front/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY front/ ./
+RUN npm run build
+
+# ---------- Python 依赖构建阶段 ----------
 FROM python:3.12-slim-bookworm AS builder
 
 # 设置构建参数
@@ -75,8 +85,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN dos2unix /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 复制其余的应用代码
+# 复制应用代码
 COPY . .
+
+# 复制前端构建产物
+COPY --from=frontend-builder /front/dist /NarratoAI/front/dist
 
 # 创建目录、复制配置、设置权限
 RUN mkdir -p \
@@ -103,8 +116,8 @@ EXPOSE 8866
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8866/_stcore/health || exit 1
+    CMD curl -f http://localhost:8866/api/v1/health || exit 1
 
 # 设置入口点
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["webui"]
+CMD ["api"]

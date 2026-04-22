@@ -334,17 +334,11 @@ User=${current_user}
 WorkingDirectory=${SCRIPT_DIR}
 Environment=PATH=${VENV_DIR}/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONPATH=${SCRIPT_DIR}
-ExecStart=${VENV_DIR}/bin/streamlit run webui.py \\
-    --server.address=${APP_HOST} \\
-    --server.port=${APP_PORT} \\
-    --server.fileWatcherType=none \\
-    --server.runOnSave=false \\
-    --server.enableCORS=true \\
-    --server.maxUploadSize=30720 \\
-    --server.maxMessageSize=30720 \\
-    --server.enableXsrfProtection=false \\
-    --browser.gatherUsageStats=false \\
-    --logger.level=info
+ExecStart=${VENV_DIR}/bin/uvicorn app.api.main:app \\
+    --host ${APP_HOST} \\
+    --port ${APP_PORT} \\
+    --workers 1 \\
+    --no-access-log
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -389,7 +383,7 @@ stop_app() {
 
     # 尝试通过进程名查找
     local pids
-    pids=$(pgrep -f "streamlit run webui.py" 2>/dev/null || true)
+    pids=$(pgrep -f "uvicorn app.api.main:app" 2>/dev/null || true)
     if [ -n "$pids" ]; then
         echo "$pids" | xargs kill 2>/dev/null || true
         ok "应用已停止"
@@ -425,7 +419,7 @@ show_status() {
 
     # 尝试通过进程名查找
     local pids
-    pids=$(pgrep -f "streamlit run webui.py" 2>/dev/null || true)
+    pids=$(pgrep -f "uvicorn app.api.main:app" 2>/dev/null || true)
     if [ -n "$pids" ]; then
         ok "应用运行中 (PID: $pids)"
         info "访问地址: http://127.0.0.1:${APP_PORT}"
@@ -461,17 +455,11 @@ start_app() {
     info "按 Ctrl+C 停止服务"
     echo ""
 
-    streamlit run webui.py \
-        --server.address="$APP_HOST" \
-        --server.port="$APP_PORT" \
-        --server.fileWatcherType=none \
-        --server.runOnSave=false \
-        --server.enableCORS=true \
-        --server.maxUploadSize=30720 \
-        --server.maxMessageSize=30720 \
-        --server.enableXsrfProtection=false \
-        --browser.gatherUsageStats=false \
-        --logger.level=info
+    uvicorn app.api.main:app \
+        --host "$APP_HOST" \
+        --port "$APP_PORT" \
+        --workers 1 \
+        --no-access-log
 }
 
 # ==================== 主流程 ====================

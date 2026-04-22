@@ -116,8 +116,8 @@ check_requirements() {
   log "环境检查完成"
 }
 
-start_webui() {
-  log "启动 NarratoAI WebUI..."
+start_api() {
+  log "启动 NarratoAI API + 前端静态资源..."
 
   if command -v netstat >/dev/null 2>&1; then
     if netstat -tuln | grep -q ":${APP_PORT} "; then
@@ -125,18 +125,14 @@ start_webui() {
     fi
   fi
 
-  exec streamlit run webui.py \
-    --server.address=0.0.0.0 \
-    --server.port="${APP_PORT}" \
-    --server.fileWatcherType=none \
-    --server.runOnSave=false \
-    --server.enableCORS=true \
-    --server.maxUploadSize=30720 \
-    --server.maxMessageSize=30720 \
-    --server.enableXsrfProtection=false \
-    --browser.gatherUsageStats=false \
-    --browser.serverAddress=0.0.0.0 \
-    --logger.level=info
+  export NARRATO_API_HOST="0.0.0.0"
+  export NARRATO_API_PORT="${APP_PORT}"
+
+  exec uvicorn app.api.main:app \
+    --host 0.0.0.0 \
+    --port "${APP_PORT}" \
+    --workers 1 \
+    --no-access-log
 }
 
 log "NarratoAI Docker 容器启动中..."
@@ -144,8 +140,8 @@ log "NarratoAI Docker 容器启动中..."
 check_requirements
 
 case "$1" in
-  "webui"|"")
-    start_webui
+  "api"|"")
+    start_api
     ;;
   "bash"|"sh")
     log "启动交互式 shell..."
@@ -153,7 +149,7 @@ case "$1" in
     ;;
   "health")
     log "执行健康检查..."
-    if curl -f "http://localhost:${APP_PORT}/_stcore/health" >/dev/null 2>&1; then
+    if curl -f "http://localhost:${APP_PORT}/api/v1/health" >/dev/null 2>&1; then
       log "健康检查通过"
       exit 0
     else

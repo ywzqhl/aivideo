@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 
 # 变量定义
-SERVICE_NAME := narratoai-webui
+SERVICE_NAME := narratoai
 
 # 颜色定义
 GREEN := \033[32m
@@ -31,7 +31,7 @@ build: ## 构建 Docker 镜像
 up: ## 启动服务
 	@echo "$(GREEN)启动服务...$(RESET)"
 	docker-compose up -d
-	@echo "$(GREEN)访问地址: http://localhost:8501$(RESET)"
+	@echo "$(GREEN)访问地址: http://localhost:8866$(RESET)"
 
 down: ## 停止服务
 	@echo "$(YELLOW)停止服务...$(RESET)"

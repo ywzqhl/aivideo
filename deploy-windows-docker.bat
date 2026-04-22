@@ -298,9 +298,9 @@ docker compose ps
 echo.
 
 :: 检查健康状态
-docker inspect --format="{{.State.Health.Status}}" narratoai-webui 2>nul
+docker inspect --format="{{.State.Health.Status}}" narratoai 2>nul
 if %errorlevel% equ 0 (
-    for /f "tokens=*" %%i in ('docker inspect --format="{{.State.Health.Status}}" narratoai-webui 2^>nul') do (
+    for /f "tokens=*" %%i in ('docker inspect --format="{{.State.Health.Status}}" narratoai 2^>nul') do (
         echo 健康状态: %%i
     )
 )

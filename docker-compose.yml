@@ -1,10 +1,10 @@
 services:
-  narratoai-webui:
+  narratoai:
     build:
       context: .
       dockerfile: Dockerfile
     image: narratoai:latest
-    container_name: narratoai-webui
+    container_name: narratoai
     ports:
       - "8866:8866"
     volumes:
@@ -13,7 +13,7 @@ services:
         target: /NarratoAI-workspace
       - ./config.toml:/NarratoAI/config.toml
       - ./resource:/NarratoAI/resource:ro
-      
+
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Shanghai
@@ -21,9 +21,8 @@ services:
       - NARRATO_WORKSPACE_ROOT=/NarratoAI-workspace
     restart: unless-stopped
 
-    # 健康检查
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8866/_stcore/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8866/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3

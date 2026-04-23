@@ -910,6 +910,16 @@ def _create_with_bailian(audio_file: str, subtitle_file: str = "", model: str = 
         return None
 
 
+def _has_bailian_key() -> bool:
+    whisper_cfg = getattr(config, "whisper", {}) or {}
+    if whisper_cfg.get("bailian_api_key"):
+        return True
+    tts_qwen_cfg = getattr(config, "tts_qwen", {}) or {}
+    if tts_qwen_cfg.get("api_key"):
+        return True
+    return bool(os.getenv("DASHSCOPE_API_KEY"))
+
+
 def create(audio_file, subtitle_file: str = "", backend_override: str = "", model_override: str = "", video_file: str = "", **kwargs):
     backend = _resolve_runtime_backend(backend_override)
     logger.info(f"字幕生成后端: requested={backend_override or CURRENT_BACKEND}, resolved={backend}")
@@ -928,7 +938,14 @@ def create(audio_file, subtitle_file: str = "", backend_override: str = "", mode
         if result:
             return result
         logger.warning("SenseVoice-Small 字幕生成失败，回退到 faster-whisper")
-    return _create_with_faster_whisper(audio_file, subtitle_file)
+    result = _create_with_faster_whisper(audio_file, subtitle_file)
+    if result:
+        return result
+    # 终极兜底：faster-whisper 没装 / 模型不在本地，且用户配了百炼 key，自动切百炼
+    if backend != "bailian" and _has_bailian_key():
+        logger.warning("本地 ASR 全部失败，检测到百炼 API Key，自动切换到百炼 Paraformer")
+        return _create_with_bailian(audio_file, subtitle_file, model_override)
+    return None
 
 
 def file_to_subtitles(filename):

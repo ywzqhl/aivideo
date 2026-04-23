@@ -53,7 +53,7 @@ def _update_processing_state(task_id: str, job_type: str, progress: int, message
         status="processing",
         message=message or str(payload.get("message", "") or ""),
         task_dir=str(payload.get("task_dir", utils.task_dir(task_id))),
-        **{k: v for k, v in payload.items() if k not in {"state", "progress", "status", "message", "job_type"}},
+        **{k: v for k, v in payload.items() if k not in {"state", "progress", "status", "message", "job_type", "task_dir"}},
     )
 
 

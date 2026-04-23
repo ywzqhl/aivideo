@@ -143,13 +143,21 @@ async function parseResponse<T>(response: Response): Promise<T> {
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(withBase(path), {
-    ...init,
-    headers: {
-      ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-      ...(init?.headers || {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(withBase(path), {
+      ...init,
+      headers: {
+        ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(init?.headers || {}),
+      },
+    });
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error('无法连接到后端服务（端口 18000）。请先启动后端：python local_api.py');
+    }
+    throw err;
+  }
   return parseResponse<T>(response);
 }
 

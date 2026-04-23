@@ -58,7 +58,11 @@ export default defineConfig(({ command }) => {
       port: parseInt(process.env.VITE_PORT || '3000'),
       proxy: {
         '/api': {
-          target: `http://localhost:18000`,
+          target: process.env.VITE_API_PROXY_TARGET || `http://127.0.0.1:18000`,
+          changeOrigin: true,
+        },
+        '/uploads': {
+          target: process.env.VITE_API_PROXY_TARGET || `http://127.0.0.1:18000`,
           changeOrigin: true,
         },
       },

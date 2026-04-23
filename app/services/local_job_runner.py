@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+import traceback
 from typing import Any, Callable, Dict, Optional
 from uuid import uuid4
 
@@ -58,7 +59,13 @@ def _update_processing_state(task_id: str, job_type: str, progress: int, message
 
 
 def _mark_job_failed(task_id: str, job_type: str, err: Exception, **extra: Any) -> None:
-    logger.exception(f"local {job_type} job failed: {task_id}")
+    tb = traceback.format_exc()
+    logger.error(
+        f"local {job_type} job failed: {task_id}\n"
+        f"  error_type: {type(err).__name__}\n"
+        f"  error_message: {err}\n"
+        f"  traceback:\n{tb}"
+    )
     existing = sm.state.get_task(task_id) or {}
     payload = dict(existing)
     payload.update(extra)
@@ -69,10 +76,11 @@ def _mark_job_failed(task_id: str, job_type: str, err: Exception, **extra: Any) 
         progress=int(existing.get("progress", 0) or 0),
         job_type=job_type,
         status="failed",
-        message=str(err),
-        error=str(err),
+        message=f"{type(err).__name__}: {err}",
+        error=f"{type(err).__name__}: {err}",
+        traceback=tb,
         task_dir=task_dir,
-        **{k: v for k, v in payload.items() if k not in {"state", "progress", "status", "message", "error", "job_type", "task_dir"}},
+        **{k: v for k, v in payload.items() if k not in {"state", "progress", "status", "message", "error", "traceback", "job_type", "task_dir"}},
     )
 
 

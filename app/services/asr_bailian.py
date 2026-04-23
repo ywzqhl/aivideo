@@ -7,11 +7,31 @@ import os
 import time
 import base64
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from loguru import logger
 
 from app.config import config
+
+
+def _build_session() -> requests.Session:
+    """Session with retries for transient SSL/connection errors."""
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        connect=5,
+        read=3,
+        backoff_factor=1.5,
+        status_forcelist=(500, 502, 503, 504),
+        allowed_methods=frozenset(["GET", "POST"]),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry, pool_connections=4, pool_maxsize=4)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 
 class BailianASRService:
@@ -42,6 +62,7 @@ class BailianASRService:
         )
         self.region = region
         self.base_url = self.BASE_URL_CN if region == "cn" else self.BASE_URL_INTL
+        self.session = _build_session()
 
         if not self.api_key:
             raise ValueError(
@@ -58,6 +79,32 @@ class BailianASRService:
         if async_mode:
             headers["X-DashScope-Async"] = "enable"
         return headers
+
+    def _post_with_ssl_retry(self, url: str, *, max_attempts: int = 4, **kwargs):
+        """
+        POST 请求，对 SSL/连接层错误做显式指数退避重试。
+        urllib3 的 Retry 不捕获 SSLError/SSLEOFError，所以我们在这里兜底。
+        """
+        last_err: Optional[Exception] = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return self.session.post(url, **kwargs)
+            except (
+                requests.exceptions.SSLError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ChunkedEncodingError,
+            ) as err:
+                last_err = err
+                if attempt >= max_attempts:
+                    break
+                wait = min(2 ** (attempt - 1), 8)
+                logger.warning(
+                    f"百炼 ASR 请求失败 (attempt {attempt}/{max_attempts}): {type(err).__name__}: {err}"
+                    f"，{wait}s 后重试"
+                )
+                time.sleep(wait)
+        assert last_err is not None
+        raise last_err
     
     def _file_to_base64(self, file_path: str) -> str:
         """将文件转换为 base64"""
@@ -131,7 +178,7 @@ class BailianASRService:
         
         logger.info(f"调用百炼短音频识别: {model}, 文件: {audio_path}")
         
-        response = requests.post(url, headers=self._get_headers(), json=payload, timeout=300)
+        response = self._post_with_ssl_retry(url, headers=self._get_headers(), json=payload, timeout=300)
         response.raise_for_status()
         
         result = response.json()
@@ -182,7 +229,7 @@ class BailianASRService:
         
         logger.info(f"提交百炼长音频任务: {model}, URL: {audio_url}")
         
-        response = requests.post(url, headers=self._get_headers(async_mode=True), json=payload, timeout=60)
+        response = self._post_with_ssl_retry(url, headers=self._get_headers(async_mode=True), json=payload, timeout=60)
         response.raise_for_status()
         
         result = response.json()
@@ -206,7 +253,7 @@ class BailianASRService:
         """
         url = f"{self.base_url}/tasks/{task_id}"
         
-        response = requests.get(url, headers=self._get_headers(), timeout=60)
+        response = self.session.get(url, headers=self._get_headers(), timeout=60)
         response.raise_for_status()
         
         return response.json()
